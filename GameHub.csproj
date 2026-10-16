@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+    <SupportedOSPlatformVersion>10.0.19041.0</SupportedOSPlatformVersion>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+    <!-- 托盘图标依赖 System.Windows.Forms.NotifyIcon；
+         仅用于托盘，不使用 WinForms 的消息循环（WPF 自带）。
+         这里声明 DPI 模式只是为了消除启用 WinForms 后产生的 WFAC010 提示：
+         实际的 DPI 感知仍然由 app.manifest（PerMonitorV2）与代码里的
+         SetProcessDpiAwareness 决定，WPF 不走 WinForms 的 HighDpiMode。 -->
+    <UseWindowsForms>true</UseWindowsForms>
+    <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <!-- ApplicationIcon removed - use PNG icons in UI, add .ico later -->
+    <AssemblyName>GameHub</AssemblyName>
+    <RootNamespace>GameHub</RootNamespace>
+    <Version>1.0.0</Version>
+    <Authors>GameHub</Authors>
+    <Description>A unified audio and gaming toolkit for Windows</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
+    <PackageReference Include="Microsoft.Win32.SystemEvents" Version="8.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\**\*.*" />
+  </ItemGroup>
+
+</Project>

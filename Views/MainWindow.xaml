@@ -1,0 +1,197 @@
+<Window x:Class="GameHub.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:GameHub.ViewModels"
+        Title="GameHub" Height="700" Width="820"
+        MinHeight="450" MinWidth="720"
+        WindowStartupLocation="CenterScreen"
+        Background="#E8F4FD"
+        WindowState="Normal"
+        AllowDrop="False">
+    <Window.Resources>
+        <!-- 卡片样式 -->
+        <Style x:Key="ModuleCardStyle" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Margin" Value="8"/>
+            <Setter Property="Padding" Value="16"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect BlurRadius="8" ShadowDepth="2" Opacity="0.12" Color="#000000"/>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+
+        <!-- 圆角按钮模板 -->
+        <ControlTemplate x:Key="RoundedButtonTemplate" TargetType="Button">
+            <Border x:Name="border" Background="{TemplateBinding Background}" 
+                    CornerRadius="6" Padding="{TemplateBinding Padding}"
+                    BorderThickness="{TemplateBinding BorderThickness}">
+                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+            <ControlTemplate.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter TargetName="border" Property="Background" Value="#357ABD"/>
+                </Trigger>
+                <Trigger Property="IsPressed" Value="True">
+                    <Setter TargetName="border" Property="Background" Value="#2E6DA4"/>
+                </Trigger>
+            </ControlTemplate.Triggers>
+        </ControlTemplate>
+
+        <ControlTemplate x:Key="AutoStartButtonTemplate" TargetType="Button">
+            <Border x:Name="border" Background="{TemplateBinding Background}" 
+                    CornerRadius="6" Padding="{TemplateBinding Padding}"
+                    BorderThickness="{TemplateBinding BorderThickness}">
+                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+            <ControlTemplate.Triggers>
+                <Trigger Property="IsPressed" Value="True">
+                    <Setter TargetName="border" Property="Background" Value="#2E8B57"/>
+                </Trigger>
+            </ControlTemplate.Triggers>
+        </ControlTemplate>
+
+        <!-- 按钮样式 -->
+        <Style x:Key="ActionButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#4A90D9"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="12,6"/>
+            <Setter Property="Margin" Value="4,0"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template" Value="{StaticResource RoundedButtonTemplate}"/>
+        </Style>
+
+        <Style x:Key="AutoStartButtonStyle" TargetType="Button">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="12,6"/>
+            <Setter Property="Margin" Value="4,0"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Background" Value="#9E9E9E"/>
+            <Setter Property="Template" Value="{StaticResource AutoStartButtonTemplate}"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsAutoStartEnabled}" Value="True">
+                    <Setter Property="Background" Value="#50C878"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- 标题栏 -->
+        <Border Grid.Row="0" Padding="16,12" Background="Transparent">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- 应用图标和名称 -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Image Source="pack://application:,,,/Assets/Icons/gamehub.png" Width="28" Height="28" Margin="0,0,8,0"/>
+                    <TextBlock Text="GameHub" FontSize="20" FontWeight="Bold" VerticalAlignment="Center"/>
+                </StackPanel>
+
+                <!-- 工具箱自启动 + 刷新 -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button x:Name="HubAutoStartButton" Height="30" MinWidth="130"
+                            Style="{StaticResource AutoStartButtonStyle}"
+                            Click="HubAutoStart_Click"/>
+                    <Button Content="设置" Width="70" Height="30" Margin="8,0,0,0"
+                            Style="{StaticResource ActionButtonStyle}" Click="Settings_Click"/>
+                    <Button Content="刷新" Width="70" Height="30" Margin="8,0,0,0"
+                            Style="{StaticResource ActionButtonStyle}" Click="Refresh_Click"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- 模块卡片网格：UniformGrid 2 列，卡片平分宽度 -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" 
+                      HorizontalScrollBarVisibility="Disabled" 
+                      Padding="8,4">
+            <ItemsControl x:Name="ModulesList" VerticalAlignment="Top">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <UniformGrid Columns="2" HorizontalAlignment="Stretch"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="{x:Type vm:ModuleCardViewModel}">
+                        <Border Style="{StaticResource ModuleCardStyle}" 
+                                MouseLeftButtonDown="ModuleCard_Click" Cursor="Hand">
+                            <Border.Triggers>
+                                <EventTrigger RoutedEvent="MouseEnter">
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetProperty="(UIElement.Effect).(DropShadowEffect.Opacity)"
+                                                             To="0.25" Duration="0:0:0.15"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </EventTrigger>
+                                <EventTrigger RoutedEvent="MouseLeave">
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetProperty="(UIElement.Effect).(DropShadowEffect.Opacity)"
+                                                             To="0.12" Duration="0:0:0.15"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </EventTrigger>
+                            </Border.Triggers>
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <!-- 图标和名称 -->
+                                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,8">
+                                    <Image Source="{Binding IconSource}" Width="44" Height="44" 
+                                           Margin="0,0,12,0" Stretch="Uniform"/>
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding ModuleName}" FontSize="16" FontWeight="SemiBold"/>
+                                        <TextBlock Text="{Binding StatusText}" FontSize="11" 
+                                                   Foreground="#888888" Margin="0,2,0,0"/>
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <!-- 描述 -->
+                                <TextBlock Grid.Row="1" Text="{Binding Description}" 
+                                           FontSize="12" Foreground="#666666" 
+                                           TextWrapping="Wrap" Margin="0,0,0,12"/>
+
+                                <!-- 分隔线 -->
+                                <Border Grid.Row="2" Height="1" Background="#E8E8E8" Margin="0,0,0,12"/>
+
+                                <!-- 操作按钮区域 -->
+                                <StackPanel Grid.Row="3" Orientation="Horizontal">
+                                    <Button Content="打开" Style="{StaticResource ActionButtonStyle}" 
+                                            Command="{Binding OpenPanelCommand}"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+
+        <!-- 底部状态栏 -->
+        <Border Grid.Row="2" Padding="12,6" Background="Transparent" BorderBrush="#D0D8E0" BorderThickness="0,1,0,0">
+            <TextBlock Text="GameHub v1.0.0 · 音频与游戏工具箱" FontSize="10" Foreground="#999999" 
+                       HorizontalAlignment="Center"/>
+        </Border>
+    </Grid>
+</Window>

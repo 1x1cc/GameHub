@@ -1,0 +1,7 @@
+{
+  "dotnet.defaultSolution": "GameHub.sln",
+  "files.exclude": {
+    "**/bin": true,
+    "**/obj": true
+  }
+}

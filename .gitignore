@@ -1,0 +1,29 @@
+# ===== 构建产物 =====
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+publish/
+*.pubxml.user
+
+# ===== Visual Studio / Rider =====
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.rsuser
+
+# ===== WPF 编译器临时文件 =====
+*_wpftmp.csproj
+
+# ===== 日志 =====
+*.log
+
+# ===== 本机环境（与项目无关）=====
+.opensquilla/
+
+# ===== 临时文件 =====
+~$*
+Thumbs.db
+.DS_Store
