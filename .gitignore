@@ -27,3 +27,6 @@ publish/
 ~$*
 Thumbs.db
 .DS_Store
+
+# ===== ���������� Releases �йܣ�=====
+*.zip
