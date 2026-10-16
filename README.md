@@ -3,6 +3,41 @@
 一个基于 C# WPF（.NET 8）的 Windows 桌面应用，为游戏玩家提供统一的音频设备管理和游戏工具集成。
 内置音频设备热键切换与蓝牙音频接收管理，全部功能本地实现、零后台轮询、对游戏帧率无影响。
 
+## 下载
+
+从 [Releases](https://github.com/1x1cc/GameHub/releases/latest) 页面下载：
+
+| 版本 | 文件 | 大小 | 说明 |
+|------|------|------|------|
+| **自包含版（推荐）** | `GameHub-v1.0.0-win-x64.zip` | 69 MB | 免安装 .NET，解压后双击 `GameHub.exe` 即用 |
+| 精简版 | `GameHub-v1.0.0-win-x64-lite.zip` | 6.5 MB | 需先安装 [.NET 8 桌面运行时](https://dotnet.microsoft.com/download/dotnet/8.0) |
+
+### 国内下载加速
+
+直连 GitHub 较慢时，在下载链接前加镜像前缀即可（实测可用）：
+
+```
+https://gh-proxy.com/          + https://github.com/1x1cc/GameHub/releases/download/...
+https://ghfast.top/            + https://github.com/1x1cc/GameHub/releases/download/...
+https://ghproxy.net/           + https://github.com/1x1cc/GameHub/releases/download/...
+https://hk.gh-proxy.com/       + https://github.com/1x1cc/GameHub/releases/download/...
+```
+
+> 镜像为第三方公益服务，可用性可能变化；如失效请直接用原始 GitHub 链接。
+
+## 资源占用
+
+在 Windows 11 + .NET 8 上实测（空闲状态，窗口打开、无操作）：
+
+| 版本 | 工作集内存 | 私有内存 | CPU |
+|------|-----------|---------|-----|
+| 自包含版 | ≈ 372 MB | ≈ 223 MB | ≈ 0% |
+| 精简版 | ≈ 219 MB | ≈ 145 MB | ≈ 0% |
+
+- 工作集包含与其他 .NET 程序共享的运行时页；精简版因共享系统运行时，占用明显更低
+- 空闲时 CPU 占用约 0%，无定时轮询；仅在按热键/切换设备时有瞬时开销
+- 对 16 GB 内存机器约占 1.4%–2.3%，因不占用 GPU 与游戏主线程，对帧率无可感知影响
+
 ## 功能特性
 
 ### 主界面
@@ -191,7 +226,8 @@ public class MyModule : IModule
 - [ ] 支持模块拖拽排序
 - [ ] 添加模块搜索功能
 - [ ] 支持主题切换（深色模式）
-- [ ] 发布自包含单文件 exe 与代码签名
+- [x] 发布自包含单文件 exe
+- [ ] 代码签名（降低杀软误报）
 
 ## 贡献
 
