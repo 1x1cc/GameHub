@@ -22,6 +22,12 @@ namespace GameHub.Utils
 
         /// <summary>读不到电量时的原因说明。</summary>
         public string Note { get; init; } = string.Empty;
+
+        /// <summary>
+        /// 这一行是「接收器状态」而不是一台设备（例如：OMNI 接收器在线，
+        /// 但配对列表为空 → 键盘没连上）。UI 里用不同分组/图标展示。
+        /// </summary>
+        public bool IsReceiverStatus { get; init; }
     }
 
     /// <summary>
@@ -41,9 +47,18 @@ namespace GameHub.Utils
     ///     mi_02/col01，回复 [5..] 按 4 字节槽位存配对设备 PID（小端 u16，遇 0 结束）；
     ///     配对键盘走 mi_02/col02（report id 0x02）、鼠标走 mi_02/col03（report id 0x03）。
     ///
-    /// 未收录型号（如 2025 年末的新品，夜魔 X 等）出现在 OMNI 配对列表里时，会按
+    /// 未收录型号（如 2025 年末的新品）出现在 OMNI 配对列表里时，会按
     /// 「键盘（夜魔家族布局优先）→ 鼠标」的顺序用只读查询试探并推断布局，读数带
     /// 「推断」标注，回复原始字节写入日志，方便日后精确收录。
+    ///
+    /// 实机验证记录（本机 ROG OMNI RECEIVER + ROG AZOTH X，2026-10）：
+    ///   · 接收器自答命令（不转发给设备）：mi_02/col01 rid 0x01 cmd 0xA0 sub 0x00 取配对列表；
+    ///     cmd 0xA1 sub 0x00 取接收器序列号（ASCII），sub 0x01 取状态（08 00 07）；cmd 0xA2 返回全 0。
+    ///   · col02（0xFF00，配 report id 0x02）与 col03（0xFF01，rid 0x03）会转发命令；
+    ///     设备不在线时接收器代答 [1]=0xFF [2]=0xAA（设备未应答），此时任何子命令都读不到电量。
+    ///   · 键盘有线直连（VID_0B05/PID_1C24）时走 mi_01（usage 0xFF00，65 字节报告，
+    ///     无 report id）：发 00 12 01 → 回 00 12 01 00 00 00 63 02 01 01 0A 63 …，
+    ///     即 [6]=99%、[9]=1 充电中（Azoth 布局）。
     /// </summary>
     public static class RogBatteryReader
     {
@@ -145,6 +160,12 @@ namespace GameHub.Utils
                 M(0x1A85, "ROG Azoth (OMNI)", true, false, true, KeyboardOmni, 6),
                 M(0x1B42, "ROG Azoth Extreme (OMNI)", true, false, true, KeyboardOmni, 6),
                 M(0x1CF1, "ROG Azoth Extreme SE (OMNI)", true, false, true, KeyboardOmni, 6),
+                // 实机验证（ROG OMNI RECEIVER VID_0B05/PID_1ACE，序列号 T5MPKRD01SGN）：
+                // 配对列表回 0x1C25 = ROG AZOTH X（无线）；插线后 VID_0B05/PID_1C24 = ROG AZOTH X（有线）。
+                // 有线通道 mi_01（usage 0xFF00）回包：
+                //   00 12 01 00 00 00 63 02 01 01 0A 63 … → [6]=0x63=99%、[9]=1（充电中）
+                // 与 Azoth 布局一致（[6] 百分比、[9] 充电位）。
+                M(0x1C25, "ROG Azoth X (OMNI)", true, false, true, KeyboardOmni, 6),
                 M(0x1B06, "ROG 夜魔 Falchion RX 低剖版 (OMNI)", true, false, true, KeyboardOmni, 11, falchion: true),
                 M(0x1AB0, "ROG Strix Scope II 96 (OMNI)", true, false, true, KeyboardOmni, 6),
                 M(0x1B7A, "ROG Strix Scope II 96 RX (OMNI)", true, false, true, KeyboardOmni, 6),
@@ -293,6 +314,28 @@ namespace GameHub.Utils
                 if (paired == null)
                 {
                     AppLog.Write($"EasyBluetooth/ROG：OMNI 接收器 {instance} 配对列表读取失败");
+                    continue;
+                }
+
+                if (paired.Count == 0)
+                {
+                    // 实机常见：接收器在，但键盘没连上（档位不在 2.4G / 休眠 / 未配对 / 只插了线）。
+                    // 以前这里什么都不写，用户只看到「列表里没有键盘」，以为是软件不认设备；
+                    // 现在补一条接收器状态行，把原因直接写清楚。
+                    AppLog.Write($"EasyBluetooth/ROG：OMNI 接收器 {instance} 当前没有配对/在线的无线设备" +
+                                 "（若键盘没插线，请确认键盘档位在 2.4G 且已和接收器配对）");
+
+                    result[$"omni-status:{instance}"] = new RogBatteryReading
+                    {
+                        Id = col01,
+                        Name = "ROG OMNI RECEIVER（接收器在线，无已连接设备）",
+                        ProductId = OmniReceiverPid,
+                        IsWireless = true,
+                        Percent = null,
+                        IsReceiverStatus = true,
+                        Note = "接收器读到了，但配对列表为空：键盘/鼠标未连接。" +
+                               "请确认设备电源已开、档位在 2.4G；若设备只能用有线，插 USB 线后即可直接读电量"
+                    };
                     continue;
                 }
 
@@ -575,7 +618,7 @@ namespace GameHub.Utils
             var kind = Transact(handle, caps, model.Channel.ReportId, CmdGet, sub, out byte[]? reply);
 
             if (kind == ReplyKind.NoAnswer)
-                return Asleep(path, model, "设备未应答（可能休眠或关机）");
+                return Asleep(path, model, "接收器已配对但设备未应答：键盘可能休眠/未开机或档位不在 2.4G，按一下键盘再刷新即可");
 
             if (kind != ReplyKind.Reply || reply == null)
                 return Asleep(path, model, "设备未应答（可能休眠，动一下设备）");

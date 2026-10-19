@@ -22,9 +22,21 @@ EasyBluetooth 是 GameHub 的第三个内置模块，用于显示本机无线设
 5. **厂商私有 HID 协议**（只读电量查询，不写设备设置）：
    - 雷蛇 Razer（协议参考开源社区逆向结论）
    - 前行者 EWEADN（参考 ccziwe/eweadn-battery）
-   - 华硕 ROG：夜魔/Azoth 系列键盘 + 鼠标 + **OMNI 多设备接收器**（参考 SteveWang92/peripheral-battery-tray，协议事实源自 G-Helper）；未收录新型号（如夜魔 X）经 OMNI 配对列表发现后自动试探布局，读数带「推断」标注
+   - 华硕 ROG：夜魔/Azoth 系列键盘 + 鼠标 + **OMNI 多设备接收器**（参考 SteveWang92/peripheral-battery-tray，协议事实源自 G-Helper）；未收录新型号经 OMNI 配对列表发现后自动试探布局，读数带「推断」标注
+     - 实机验证（ROG OMNI RECEIVER，VID_0B05/PID_1ACE）：配对列表读 `mi_02/col01`（report id 0x01，cmd 0xA0 sub 0x00）；无线键盘走 `mi_02/col02`（0xFF00，report id 0x02）、鼠标走 `mi_02/col03`（0xFF01，report id 0x03）；设备不在线时接收器代答 `[1]=0xFF [2]=0xAA`
+     - 实机验证（ROG AZOTH X）：无线配对 ID `0x1C25`、有线 PID `0x1C24`；有线走 `mi_01`（usage 0xFF00，65 字节无 report id），`00 12 01` → `00 12 01 00 00 00 63 02 01 01 0A 63 …`，即 `[6]` 百分比、`[9]==1` 充电中（Azoth 布局）
    - WLMouse 万灵/花兽：Beast/花兽家族 2024–2026 全系（参考 mee7ya/wlmouse-cli 与 Creationsss/wl-mouse，含充电状态）；未收录新型号自动走同协议试探
 6. **XInput 手柄电量**（XInputGetBatteryInformation，微软公开 API）：覆盖有线/2.4G XInput 手柄（Xbox 及致动等第三方）；只有空/低/中/满档位，换算为近似百分比；蓝牙手柄走 BLE/HID 通道
+
+   - 已知限制：不少第三方 2.4G 接收器（实测致动手柄 ZD 系）把自己仿真成「Xbox 360 有线手柄」，XInput 只回「有线」，因此**拿不到百分比**——此时列表会如实标注原因，而不是假装设备不存在
+
+## v1.0.2 修复
+
+- 修复 `HidNative.CollectionNameOf` 的集合名正则（`col_(\d+)` → `col_?(\d+)`）：此前 Windows 的 `...&mi_02&col01#...` 路径全部解析失败，导致 **ROG OMNI 接收器整条分支静默失效**（软件认不出无线连接下的 ROG 夜魔 X / AZOTH X 键盘）
+- ROG 型号表补录 **ROG Azoth X**（有线 0x1C24 / 无线配对 0x1C25，Azoth 布局）
+- OMNI 接收器在线但配对列表为空时，列表会给出**明确的接收器状态行**与排查提示（档位不在 2.4G / 未配对 / 只能用有线）
+- 列表行末尾新增「原因说明」，读不到电量时直接写清原因（设备休眠 / XInput 只报有线 / 接收器无设备）
+- XInput 库探测改为 xinput1_4 → xinput1_3 → xinput9_1_0 逐级回退（`xinput9_1_0.dll` 没有该导出函数），并避免旧版每轮轮询刷 4 条异常堆栈
 
 ### 反作弊兼容性
 - ✅ 只使用 Windows 原生 API（CoreAudio / WASAPI / 蓝牙 / PnP），不安装驱动

@@ -17,9 +17,9 @@
     <!-- ApplicationIcon removed - use PNG icons in UI, add .ico later -->
     <AssemblyName>GameHub</AssemblyName>
     <RootNamespace>GameHub</RootNamespace>
-    <Version>1.0.1</Version>
-    <FileVersion>1.0.1</FileVersion>
-    <AssemblyVersion>1.0.1</AssemblyVersion>
+    <Version>1.0.2</Version>
+    <FileVersion>1.0.2</FileVersion>
+    <AssemblyVersion>1.0.2</AssemblyVersion>
     <Authors>GameHub</Authors>
     <Description>A unified audio and gaming toolkit for Windows</Description>
   </PropertyGroup>

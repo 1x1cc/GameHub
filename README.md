@@ -9,12 +9,28 @@
 
 | 版本 | 文件 | 大小 | 说明 |
 |------|------|------|------|
-| **自包含版（推荐）** | `GameHub-v1.0.1-win-x64.zip` | 69 MB | 免安装 .NET，解压后双击 `GameHub.exe` 即用 |
-| 精简版 | `GameHub-v1.0.1-win-x64-lite.zip` | 6.7 MB | 需先安装 [.NET 8 桌面运行时](https://dotnet.microsoft.com/download/dotnet/8.0) |
+| **自包含版（推荐）** | `GameHub-v1.0.2-win-x64.zip` | 69 MB | 免安装 .NET，解压后双击 `GameHub.exe` 即用 |
+| 精简版 | `GameHub-v1.0.2-win-x64-lite.zip` | 6.7 MB | 需先安装 [.NET 8 桌面运行时](https://dotnet.microsoft.com/download/dotnet/8.0) |
 
 ### 国内下载加速
 
-直连 GitHub 较慢时，在下载链接前加镜像前缀即可（实测可用）：
+直连 GitHub 较慢时，在下载链接前加镜像前缀即可（实测可用）。当前最新版（v1.0.2）的现成镜像链接：
+
+```
+# 自包含版（推荐）
+https://gh-proxy.com/https://github.com/1x1cc/GameHub/releases/download/v1.0.2/GameHub-v1.0.2-win-x64.zip
+https://ghfast.top/https://github.com/1x1cc/GameHub/releases/download/v1.0.2/GameHub-v1.0.2-win-x64.zip
+https://ghproxy.net/https://github.com/1x1cc/GameHub/releases/download/v1.0.2/GameHub-v1.0.2-win-x64.zip
+https://hk.gh-proxy.com/https://github.com/1x1cc/GameHub/releases/download/v1.0.2/GameHub-v1.0.2-win-x64.zip
+
+# 精简版（需 .NET 8 桌面运行时）
+https://gh-proxy.com/https://github.com/1x1cc/GameHub/releases/download/v1.0.2/GameHub-v1.0.2-win-x64-lite.zip
+https://ghfast.top/https://github.com/1x1cc/GameHub/releases/download/v1.0.2/GameHub-v1.0.2-win-x64-lite.zip
+https://ghproxy.net/https://github.com/1x1cc/GameHub/releases/download/v1.0.2/GameHub-v1.0.2-win-x64-lite.zip
+https://hk.gh-proxy.com/https://github.com/1x1cc/GameHub/releases/download/v1.0.2/GameHub-v1.0.2-win-x64-lite.zip
+```
+
+镜像前缀与 GitHub 原始路径的对应关系：
 
 ```
 https://gh-proxy.com/          + https://github.com/1x1cc/GameHub/releases/download/...
@@ -128,7 +144,7 @@ powershell -ExecutionPolicy Bypass -File install.ps1 -InstallDir "D:\Tools\GameH
 - ✅ 显示蓝牙设备列表（经典蓝牙 + BLE）
 - ✅ 显示 2.4G 无线设备电量（通过 HID/USB 电源接口）
 - ✅ 电量百分比实时读取（PnP 属性 / GATT 电池服务 / 系统电源接口 / HID 标准电量）
-- ✅ 厂商私有协议直读（仅只读查询，不修改设备设置）：华硕 ROG 键盘鼠标（含 OMNI 多设备接收器）、WLMouse 万灵/花兽全系（含充电状态）、雷蛇 Razer、前行者 EWEADN
+- ✅ 厂商私有协议直读（仅只读查询，不修改设备设置）：华硕 ROG 键盘鼠标（夜魔 / AZOTH / AZOTH X 等，含 OMNI 多设备接收器）、WLMouse 万灵/花兽全系（含充电状态）、雷蛇 Razer、前行者 EWEADN
 - ✅ XInput 手柄电量（微软公开 API，覆盖有线 / 2.4G 手柄）
 - ✅ 低电量通知（可自定义阈值，默认 20%）
 - ✅ 定时轮询（默认 30 秒，可配置 10-3600 秒）
@@ -262,6 +278,16 @@ public class MyModule : IModule
 - **SoundSwitch 模块**：灵感来源于 [Belphemur/SoundSwitch](https://github.com/Belphemur/SoundSwitch)（GPLv3），本项目按 GPLv3 义务整体开源
 - **AudioPlaybackConnector 模块**：灵感来源于 [ysc3839/AudioPlaybackConnector](https://github.com/ysc3839/AudioPlaybackConnector)（MIT）
 - **EasyBluetooth 模块**：灵感来源于 [muedsa/BluetoothLEBatteryMonitor](https://github.com/muedsa/BluetoothLEBatteryMonitor)（MIT），本模块完全自研实现
+
+## 更新日志
+
+### v1.0.2（2026-10-19）
+
+- **修复 ROG OMNI 接收器下的无线键盘认不出来**：`HidNative.CollectionNameOf` 的集合名正则写成了 `col_(\d+)`，而 Windows 的 HID 接口路径实际是 `...&mi_02&col01#...`（没有下划线），导致 OMNI 接收器分支（配对列表 / 无线键盘电量）**静默失效**，只有键盘插线时能读到电量
+- ROG 型号表补录 **ROG AZOTH X**（有线 `0x1C24` / 无线配对 `0x1C25`，Azoth 布局：`[6]` 百分比、`[9]==1` 充电中）；实机验证无线 99%→100% 充电中
+- OMNI 接收器在线、但配对列表为空时，列表会多一行**接收器状态**并直接写出排查提示（键盘档位不在 2.4G / 未配对 / 只能用有线时请插线）
+- 每个设备行末尾新增「原因说明」：读不到电量时写清原因（设备休眠未应答 / XInput 只报有线 / 接收器无已连设备）
+- XInput 库探测改为 `xinput1_4` → `xinput1_3` → `xinput9_1_0` 逐级回退（`xinput9_1_0.dll` 根本没导出 `XInputGetBatteryInformation`），并修掉旧版每轮轮询刷 4 条异常堆栈的问题
 
 ## 未来规划
 

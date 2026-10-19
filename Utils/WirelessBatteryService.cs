@@ -85,6 +85,13 @@ namespace GameHub.Utils
 
         public BatterySource Source { get; set; } = BatterySource.None;
 
+        /// <summary>
+        /// 补充说明（来自各读取器）：例如「设备休眠未应答」「XInput 只报有线」
+        /// 「OMNI 接收器在线但没有已配对的无线设备」。会拼到列表行末，
+        /// 让用户一眼看出“为什么没有数字”，而不是干巴巴一个「电量未知」。
+        /// </summary>
+        public string Detail { get; set; } = string.Empty;
+
         /// <summary>该电量值的读取时间；未知为 null。</summary>
         public DateTimeOffset? BatteryReadAt { get; set; }
 
@@ -126,6 +133,9 @@ namespace GameHub.Utils
                     parts.Add("上次读数");
 
                 parts.Add(IsConnected ? "已连接" : "未连接");
+
+                if (!string.IsNullOrWhiteSpace(Detail))
+                    parts.Add(Detail);
 
                 if (Address.Length > 0)
                     parts.Add(Address);
@@ -678,11 +688,12 @@ namespace GameHub.Utils
                     Name = name,
                     Address = string.Empty,
                     IsBluetooth = false,
-                    Kind = WirelessDeviceKind.Input,
+                    Kind = rog.IsReceiverStatus ? WirelessDeviceKind.Other : WirelessDeviceKind.Input,
                     IsConnected = rogHasBattery,
                     BatteryPercent = rog.Percent,
                     IsCharging = rog.IsCharging,
                     Source = rogHasBattery ? BatterySource.RogHid : BatterySource.None,
+                    Detail = rog.Note,
                     BatteryReadAt = rogHasBattery ? DateTimeOffset.Now : (DateTimeOffset?)null
                 });
             }
@@ -709,6 +720,7 @@ namespace GameHub.Utils
                     BatteryPercent = wl.Percent,
                     IsCharging = wl.IsCharging,
                     Source = wlHasBattery ? BatterySource.WlMouseHid : BatterySource.None,
+                    Detail = wl.Note,
                     BatteryReadAt = wlHasBattery ? DateTimeOffset.Now : (DateTimeOffset?)null
                 });
             }
@@ -736,6 +748,7 @@ namespace GameHub.Utils
                     Source = (pad.Percent.HasValue || pad.IsCharging)
                         ? BatterySource.Xinput
                         : BatterySource.None,
+                    Detail = pad.Note,
                     BatteryReadAt = pad.Percent.HasValue ? DateTimeOffset.Now : (DateTimeOffset?)null
                 });
             }

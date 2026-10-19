@@ -292,12 +292,23 @@ namespace GameHub.Utils
             return m.Success ? int.Parse(m.Groups[1].Value) : -1;
         }
 
-        /// <summary>从接口路径解析 HID 集合名（col_NN，统一小写）；解析不到返回 null。</summary>
+        /// <summary>
+        /// 从接口路径解析 HID 集合名（col01…，统一小写、不带下划线）；解析不到返回 null。
+        ///
+        /// ⚠ 实机踩坑：Windows 给 HID 接口的路径形如
+        ///   \\?\hid#vid_0b05&amp;pid_1ace&amp;mi_02&amp;col01#…
+        /// 集合名是 **col01**（没有下划线）。这里早期写成 @"col_(\d+)"，
+        /// 于是 OMNI 接收器的 col01/col02/col03 一个都匹配不上：
+        /// RogBatteryReader 里拿到 null 就 continue，整条 ROG OMNI 分支
+        /// （配对列表 / 无线键盘电量）静默失效但日志一片干净 —— 表现为
+        /// 「软件认不出 ROG 夜魔 X / AZOTH X 键盘」，有线直连却正常。
+        /// 现在同时兼容 col01 与 col_01 两种写法。
+        /// </summary>
         internal static string? CollectionNameOf(string path)
         {
             var m = System.Text.RegularExpressions.Regex.Match(path,
-                @"col_(\d+)", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
-            return m.Success ? m.Value.ToLowerInvariant() : null;
+                @"col_?(\d+)", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            return m.Success ? "col" + m.Groups[1].Value.ToLowerInvariant() : null;
         }
 
         /// <summary>

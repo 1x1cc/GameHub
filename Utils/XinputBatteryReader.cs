@@ -50,16 +50,27 @@ namespace GameHub.Utils
             public byte BatteryLevel;
         }
 
+        // xinput1_4.dll 是 Win8+ 的版本，导出表里有 XInputGetBatteryInformation；
+        // 但老系统/精简化系统上可能只有 xinput1_3.dll，而 xinput9_1_0.dll **没有** 这个导出函数。
+        // 实机报错记录：'Unable to find an entry point named XInputGetBatteryInformation in DLL xinput9_1_0.dll'
+        // ——所以三个库要按 1_4 → 1_3 → 9_1_0 的顺序探测，且失败必须落到下一个候选，不能把结果永久标记为“不可用”。
         [DllImport("xinput1_4.dll", EntryPoint = "XInputGetBatteryInformation")]
         private static extern int XInputGetBatteryInformation1_4(
+            int userIndex, byte deviceType, out XInputBatteryInformation batteryInformation);
+
+        [DllImport("xinput1_3.dll", EntryPoint = "XInputGetBatteryInformation")]
+        private static extern int XInputGetBatteryInformation1_3(
             int userIndex, byte deviceType, out XInputBatteryInformation batteryInformation);
 
         [DllImport("xinput9_1_0.dll", EntryPoint = "XInputGetBatteryInformation")]
         private static extern int XInputGetBatteryInformation9_1(
             int userIndex, byte deviceType, out XInputBatteryInformation batteryInformation);
 
-        /// <summary>0=未探测，1=xinput1_4，2=xinput9_1_0，3=都不可用。</summary>
+        /// <summary>0=未探测，1=xinput1_4，2=xinput1_3，3=xinput9_1_0，4=都不可用。</summary>
         private static int _library;
+
+        /// <summary>库不可用的报错只写一次日志，避免每轮轮询刷屏（旧版每 30 秒喷 4 条堆栈）。</summary>
+        private static bool _probeFailureLogged;
 
         private const int ResultCacheMs = 2500;
 
@@ -102,6 +113,9 @@ namespace GameHub.Utils
 
                 if (info.BatteryType == BatteryTypeWired)
                 {
+                    // 实机：致动手柄 + 原厂 2.4G 接收器也是这里（接收器把自己仿真成
+                    // “Xbox 360 有线手柄”，XInput 只肯回答「有线」，因此读不到百分比）。
+                    // 如实告诉用户原因，而不是假装设备不存在。
                     result.Add(new XinputBatteryReading
                     {
                         UserIndex = i,
@@ -109,7 +123,8 @@ namespace GameHub.Utils
                         Percent = null,
                         IsCharging = true,
                         IsWired = true,
-                        Note = "有线连接"
+                        Note = "XInput 报告为有线供电：此通道只能给出“有线/档位”，有线手柄与" +
+                               "不上报电量的 2.4G 接收器都拿不到百分比"
                     });
                     continue;
                 }
@@ -136,53 +151,76 @@ namespace GameHub.Utils
             return result;
         }
 
-        /// <summary>优先 xinput1_4（Win8+），缺失时退回 xinput9_1_0；结果按库缓存。</summary>
+        /// <summary>
+        /// 依次尝试 xinput1_4 → xinput1_3 → xinput9_1_0，命中后就固定在那个库上。
+        ///
+        /// 旧实现的两个问题（本机实机日志可复现）：
+        ///   1) 1_4 抛 EntryPointNotFound 后只回退到 xinput9_1_0，而 9_1_0 根本没有这个导出，
+        ///      于是继续抛异常，结果把 _library 永久置为「都不可用」；
+        ///   2) 每次轮询都把异常栈写进日志（30 秒一轮，四条一刷）。
+        /// </summary>
         private static int QueryOnce(int userIndex, out XInputBatteryInformation info)
         {
             info = default;
 
+            if (_library == 4)
+                return -1;
+
             try
             {
-                if (_library == 1)
-                    return XInputGetBatteryInformation1_4(userIndex, BatteryDevtypeGamepad, out info);
-                if (_library == 2)
-                    return XInputGetBatteryInformation9_1(userIndex, BatteryDevtypeGamepad, out info);
-                if (_library == 3)
-                    return -1;
+                switch (_library)
+                {
+                    case 1:
+                        return XInputGetBatteryInformation1_4(userIndex, BatteryDevtypeGamepad, out info);
+                    case 2:
+                        return XInputGetBatteryInformation1_3(userIndex, BatteryDevtypeGamepad, out info);
+                    case 3:
+                        return XInputGetBatteryInformation9_1(userIndex, BatteryDevtypeGamepad, out info);
+                }
 
+                // 探测阶段：按 1_4 → 1_3 → 9_1_0 依次试，第一个能调通的固定下来
                 try
                 {
                     int hr = XInputGetBatteryInformation1_4(userIndex, BatteryDevtypeGamepad, out info);
                     _library = 1;
                     return hr;
                 }
-                catch (EntryPointNotFoundException)
+                catch (EntryPointNotFoundException) { }
+                catch (DllNotFoundException) { }
+
+                try
                 {
-                    // 导出表异常：退回通用版
+                    int hr = XInputGetBatteryInformation1_3(userIndex, BatteryDevtypeGamepad, out info);
+                    _library = 2;
+                    return hr;
                 }
-                catch (DllNotFoundException)
-                {
-                    // 老系统没有 xinput1_4：退回通用版
-                }
+                catch (EntryPointNotFoundException) { }
+                catch (DllNotFoundException) { }
 
                 try
                 {
                     int hr = XInputGetBatteryInformation9_1(userIndex, BatteryDevtypeGamepad, out info);
-                    _library = 2;
+                    _library = 3;
                     return hr;
                 }
-                catch (EntryPointNotFoundException)
+                catch (EntryPointNotFoundException) { }
+                catch (DllNotFoundException) { }
+
+                _library = 4;
+                if (!_probeFailureLogged)
                 {
-                    _library = 3;
-                }
-                catch (DllNotFoundException)
-                {
-                    _library = 3;
+                    _probeFailureLogged = true;
+                    AppLog.Write("XInput：xinput1_4 / xinput1_3 / xinput9_1_0 都取不到 " +
+                                 "XInputGetBatteryInformation，本机不显示 XInput 手柄电量（其它通道不受影响）");
                 }
             }
             catch (Exception ex)
             {
-                AppLog.Write("XInput 电量查询失败", ex);
+                if (!_probeFailureLogged)
+                {
+                    _probeFailureLogged = true;
+                    AppLog.Write("XInput 电量查询失败", ex);
+                }
             }
 
             return -1;
