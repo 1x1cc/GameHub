@@ -1,23 +1,22 @@
 @echo off
-chcp 65001 >nul 2>&1
 setlocal
 cd /d "%~dp0"
 
-:: ========== GameHub å¼€å‘è°ƒè¯•å¿«æ·å¯åŠ¨ ==========
-:: ç”¨æ³•: åŒå‡»è¿è¡Œ, æˆ–æ‹–å…¥ cmd.exe
+:: ========== GameHub ¿ª·¢µ÷ÊÔ¿ì½İÆô¶¯ ==========
+:: ÓÃ·¨: Ë«»÷ÔËĞĞ, »òÍÏÈë cmd.exe
 :: ==============================================
 
-echo [GameHub] æ­£åœ¨ç¼–è¯‘å¹¶å¯åŠ¨...
+echo [GameHub] ÕıÔÚ±àÒë²¢Æô¶¯...
 
 dotnet run -c Debug -p GameHub.csproj --no-build 2>nul ^
     || dotnet build -c Debug -p GameHub.csproj /consoleloggerparameters:NoSummary;ForceNoAlign 2>nul ^
     && dotnet run -c Debug -p GameHub.csproj --no-restore --no-build
 
 if errorlevel 1 (
-    echo [GameHub] ç¼–è¯‘å¤±è´¥ï¼Œè¯·æ£€æŸ¥é”™è¯¯ä¿¡æ¯ã€‚
+    echo [GameHub] ±àÒëÊ§°Ü£¬Çë¼ì²é´íÎóĞÅÏ¢¡£
     pause
     exit /b 1
 )
 
-echo [GameHub] å·²å…³é—­ã€‚
+echo [GameHub] ÒÑ¹Ø±Õ¡£
 pause

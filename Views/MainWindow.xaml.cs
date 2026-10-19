@@ -105,7 +105,11 @@ namespace GameHub.Views
             var modules = new List<Interfaces.IModule>
             {
                 new SoundSwitchModule(),
-                new AudioPlaybackConnectorModule()
+                new AudioPlaybackConnectorModule(),
+
+                // 第三个卡片：无线设备电量（EasyBluetooth）。
+                // UniformGrid 两列布局下它会自然排在第一行左侧卡片的下面。
+                new Modules.EasyBluetooth.EasyBluetoothModule()
             };
 
             _moduleViewModels.Clear();

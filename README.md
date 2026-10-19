@@ -9,8 +9,8 @@
 
 | 版本 | 文件 | 大小 | 说明 |
 |------|------|------|------|
-| **自包含版（推荐）** | `GameHub-v1.0.0-win-x64.zip` | 69 MB | 免安装 .NET，解压后双击 `GameHub.exe` 即用 |
-| 精简版 | `GameHub-v1.0.0-win-x64-lite.zip` | 6.5 MB | 需先安装 [.NET 8 桌面运行时](https://dotnet.microsoft.com/download/dotnet/8.0) |
+| **自包含版（推荐）** | `GameHub-v1.0.1-win-x64.zip` | 69 MB | 免安装 .NET，解压后双击 `GameHub.exe` 即用 |
+| 精简版 | `GameHub-v1.0.1-win-x64-lite.zip` | 6.7 MB | 需先安装 [.NET 8 桌面运行时](https://dotnet.microsoft.com/download/dotnet/8.0) |
 
 ### 国内下载加速
 
@@ -122,6 +122,22 @@ powershell -ExecutionPolicy Bypass -File install.ps1 -InstallDir "D:\Tools\GameH
 
 **灵感来源：** [ysc3839/AudioPlaybackConnector](https://github.com/ysc3839/AudioPlaybackConnector) (MIT)
 
+#### 3. EasyBluetooth
+
+**功能：**
+- ✅ 显示蓝牙设备列表（经典蓝牙 + BLE）
+- ✅ 显示 2.4G 无线设备电量（通过 HID/USB 电源接口）
+- ✅ 电量百分比实时读取（PnP 属性 / GATT 电池服务 / 系统电源接口 / HID 标准电量）
+- ✅ 厂商私有协议直读（仅只读查询，不修改设备设置）：华硕 ROG 键盘鼠标（含 OMNI 多设备接收器）、WLMouse 万灵/花兽全系（含充电状态）、雷蛇 Razer、前行者 EWEADN
+- ✅ XInput 手柄电量（微软公开 API，覆盖有线 / 2.4G 手柄）
+- ✅ 低电量通知（可自定义阈值，默认 20%）
+- ✅ 定时轮询（默认 30 秒，可配置 10-3600 秒）
+- ✅ 常驻悬浮窗（可锁定/穿透/置顶/透明度设置）
+
+**实现方式：** 基于 Windows 原生 API（PnP 设备属性 / Windows.Devices.Power.Battery / 蓝牙 GATT / HID）与厂商私有只读协议查询，不依赖外部程序。
+
+**灵感来源：** [muedsa/BluetoothLEBatteryMonitor](https://github.com/muedsa/BluetoothLEBatteryMonitor)（MIT），本模块完全自研实现。
+
 ### 与游戏反作弊的兼容性
 
 GameHub 面向边玩游戏边使用的场景，代码层面刻意避开了所有反作弊敏感行为：
@@ -195,9 +211,15 @@ GameHub/
 │   ├── SoundSwitch/
 │   │   ├── SoundSwitchModule.cs
 │   │   └── SoundSwitchSettingsWindow.xaml(.cs)
-│   └── AudioPlaybackConnector/
-│       ├── AudioPlaybackConnectorModule.cs
-│       └── AudioPlaybackConnectorSettingsWindow.xaml(.cs)
+│   ├── AudioPlaybackConnector/
+│   │   ├── AudioPlaybackConnectorModule.cs
+│   │   └── AudioPlaybackConnectorSettingsWindow.xaml(.cs)
+│   └── EasyBluetooth/
+│       ├── EasyBluetoothModule.cs
+│       ├── EasyBluetoothMonitor.cs
+│       ├── EasyBluetoothSettingsWindow.xaml(.cs)
+│       ├── EasyBluetoothFloatingWindow.xaml(.cs)
+│       └── EasyBluetoothFloatingController.cs
 └── Assets/
     └── Icons/               # 图标资源
 ```
@@ -239,6 +261,7 @@ public class MyModule : IModule
 - **GameHub 主程序**：GPLv3
 - **SoundSwitch 模块**：灵感来源于 [Belphemur/SoundSwitch](https://github.com/Belphemur/SoundSwitch)（GPLv3），本项目按 GPLv3 义务整体开源
 - **AudioPlaybackConnector 模块**：灵感来源于 [ysc3839/AudioPlaybackConnector](https://github.com/ysc3839/AudioPlaybackConnector)（MIT）
+- **EasyBluetooth 模块**：灵感来源于 [muedsa/BluetoothLEBatteryMonitor](https://github.com/muedsa/BluetoothLEBatteryMonitor)（MIT），本模块完全自研实现
 
 ## 未来规划
 

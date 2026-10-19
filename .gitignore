@@ -30,3 +30,6 @@ Thumbs.db
 
 # ===== ���������� Releases �йܣ�=====
 *.zip
+
+# ===== 编译校验临时输出 =====
+buildcheck*/

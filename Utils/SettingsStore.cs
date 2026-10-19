@@ -77,6 +77,77 @@ namespace GameHub.Utils
         /// 手动启动（双击 exe / 开始菜单）不受此项影响，始终显示主窗口。
         /// </summary>
         public bool AutoStartMinimizedToTray { get; set; } = false;
+
+        /// <summary>
+        /// EasyBluetooth 模块（无线设备电量）的设置。
+        /// 独立成一个子对象，新增模块不影响已有模块的设置项。
+        /// </summary>
+        public EasyBluetoothSettings EasyBluetooth { get; set; } = new();
+    }
+
+    /// <summary>
+    /// EasyBluetooth 模块设置：设备电量刷新、低电量通知、悬浮窗。
+    /// 所有可调数值都经 Normalize 收敛，避免 settings.json 被手改成极端值后
+    /// 导致高频轮询或悬浮窗跑到屏幕外。
+    /// </summary>
+    public sealed class EasyBluetoothSettings
+    {
+        /// <summary>是否定时自动刷新电量。</summary>
+        public bool AutoRefreshEnabled { get; set; } = true;
+
+        /// <summary>自动刷新间隔（秒）。默认 30 秒：一次刷新只是设备枚举 + 属性读取，开销极低。</summary>
+        public int RefreshIntervalSeconds { get; set; } = 30;
+
+        /// <summary>电量低于阈值时弹通知。</summary>
+        public bool LowBatteryNotifyEnabled { get; set; } = true;
+
+        /// <summary>低电量阈值（百分比）。</summary>
+        public int LowBatteryThresholdPercent { get; set; } = 20;
+
+        /// <summary>同一台设备低电量提醒的最小间隔（分钟），避免每轮都弹。</summary>
+        public int LowBatteryRepeatMinutes { get; set; } = 30;
+
+        /// <summary>设备列表只显示已连接的设备。</summary>
+        public bool ListOnlyConnected { get; set; } = false;
+
+        // ---------- 悬浮窗 ----------
+
+        public bool FloatingEnabled { get; set; } = false;
+
+        /// <summary>锁定后不能用鼠标拖动悬浮窗。</summary>
+        public bool FloatingLocked { get; set; } = false;
+
+        public bool FloatingTopmost { get; set; } = true;
+
+        /// <summary>鼠标穿透：悬浮窗不拦截鼠标事件（打游戏时不挡操作）。</summary>
+        public bool FloatingClickThrough { get; set; } = false;
+
+        public double FloatingOpacity { get; set; } = 0.92;
+
+        public bool FloatingOnlyConnected { get; set; } = true;
+
+        /// <summary>悬浮窗位置；-1 表示还没保存过（首次显示时自动放到右上角）。</summary>
+        public double FloatingLeft { get; set; } = -1;
+
+        public double FloatingTop { get; set; } = -1;
+
+        public static int NormalizeInterval(int seconds) => Math.Clamp(seconds, 10, 3600);
+
+        public static int NormalizeThreshold(int percent) => Math.Clamp(percent, 1, 99);
+
+        public static int NormalizeRepeat(int minutes) => Math.Clamp(minutes, 1, 1440);
+
+        public static double NormalizeOpacity(double opacity)
+            => opacity < 0.3 ? 0.3 : (opacity > 1.0 ? 1.0 : opacity);
+
+        /// <summary>把从 JSON 读进来的值收敛到合法范围。</summary>
+        public void Normalize()
+        {
+            RefreshIntervalSeconds = NormalizeInterval(RefreshIntervalSeconds);
+            LowBatteryThresholdPercent = NormalizeThreshold(LowBatteryThresholdPercent);
+            LowBatteryRepeatMinutes = NormalizeRepeat(LowBatteryRepeatMinutes);
+            FloatingOpacity = NormalizeOpacity(FloatingOpacity);
+        }
     }
 
     /// <summary>
@@ -125,5 +196,25 @@ namespace GameHub.Utils
         }
 
         public static string SettingsFilePath => FilePath;
+
+        /// <summary>读取 EasyBluetooth 模块设置（含归一化）。</summary>
+        public static EasyBluetoothSettings LoadEasyBluetooth()
+        {
+            var settings = Load().EasyBluetooth;
+            settings.Normalize();
+            return settings;
+        }
+
+        /// <summary>
+        /// 只更新 EasyBluetooth 模块设置，其余模块的设置保持不动。
+        /// 模块若直接 Save(ModuleSettings) 会把内存里可能已过期的其它设置写回去，
+        /// 因此这里统一走“读-改-写”，只覆盖自己的子对象。
+        /// </summary>
+        public static void Save(EasyBluetoothSettings settings)
+        {
+            var root = Load();
+            root.EasyBluetooth = settings;
+            Save(root);
+        }
     }
 }
