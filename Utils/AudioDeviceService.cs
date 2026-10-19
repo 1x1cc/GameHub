@@ -77,9 +77,9 @@ namespace GameHub.Utils
                     }
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                // 静默失败，返回已收集的设备
+                AppLog.Write($"AudioDeviceService.GetDevices 异常：flow={flow}", ex);
             }
             finally
             {
@@ -119,12 +119,20 @@ namespace GameHub.Utils
         public static bool SetDefaultDevice(string deviceId)
         {
             if (string.IsNullOrEmpty(deviceId))
+            {
+                AppLog.Write("SetDefaultDevice：deviceId 为空，放弃");
                 return false;
+            }
 
-            bool ok = CoreAudioInterop.SetDefaultEndpoint(deviceId, CoreAudioInterop.ERole.eMultimedia);
-            CoreAudioInterop.SetDefaultEndpoint(deviceId, CoreAudioInterop.ERole.eConsole);
-            CoreAudioInterop.SetDefaultEndpoint(deviceId, CoreAudioInterop.ERole.eCommunications);
-            return ok;
+            bool okMultimedia = CoreAudioInterop.SetDefaultEndpoint(deviceId, CoreAudioInterop.ERole.eMultimedia);
+            bool okConsole = CoreAudioInterop.SetDefaultEndpoint(deviceId, CoreAudioInterop.ERole.eConsole);
+            bool okCommunications = CoreAudioInterop.SetDefaultEndpoint(deviceId, CoreAudioInterop.ERole.eCommunications);
+
+            // eMultimedia 决定返回成功；但另外两个角色失败也会导致“界面上看着没切过去”，必须记录。
+            if (!okMultimedia || !okConsole || !okCommunications)
+                AppLog.Write($"SetDefaultDevice：部分角色失败 multimedia={okMultimedia} console={okConsole} communications={okCommunications} device={deviceId}");
+
+            return okMultimedia;
         }
 
         /// <summary>切到下一个设备（用于热键循环切换）。</summary>
@@ -132,14 +140,22 @@ namespace GameHub.Utils
         {
             var devices = GetDevices(flow);
             if (devices.Count == 0)
+            {
+                AppLog.Write($"SwitchToNext：{flow} 无可用设备");
                 return null;
+            }
 
             int index = devices.FindIndex(d => d.IsDefault);
             int next = devices.Count == 1 ? 0 : (index < 0 ? 0 : (index + 1) % devices.Count);
 
             var target = devices[next];
+            AppLog.Write($"SwitchToNext：{flow}，设备数={devices.Count}，当前默认索引={index}，切到 {target.Name}（{target.Id}）");
+
             // 切换失败时返回 null，避免调用方误报成功
-            return SetDefaultDevice(target.Id) ? target : null;
+            bool ok = SetDefaultDevice(target.Id);
+            if (!ok)
+                AppLog.Write($"SwitchToNext 失败：{flow} -> {target.Name}（{target.Id}）");
+            return ok ? target : null;
         }
     }
 }

@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Windows;
+using GameHub.Utils;
 
 namespace GameHub
 {
@@ -27,20 +28,16 @@ namespace GameHub
 
         protected override void OnStartup(StartupEventArgs e)
         {
-            // 全局异常处理器
-            DispatcherUnhandledException += (s, ex) =>
-            {
-                var log = $"[{DateTime.Now:HH:mm:ss}] UI 线程异常：{ex.Exception.GetType().Name}: {ex.Exception.Message}\n{ex.Exception.StackTrace}";
-                System.IO.File.AppendAllText(System.IO.Path.Combine(System.IO.Path.GetTempPath(), "gamehub.log"), log + "\n");
-                ex.Handled = true;
-            };
+            // 第一行就落日志：判断"开机自启动到底有没有把程序拉起来"，
+            // 全靠这一行的时间和启动参数。（以前启动阶段完全不写日志，
+            // 只能靠猜，这也是"疑似没生效"难以定位的原因。）
+            var arguments = e.Args is { Length: > 0 } ? string.Join(" ", e.Args) : "(无)";
+            bool startedByAutoStart = AutoStartManager.IsAutoStartInvocation(e.Args);
+            AppLog.Write($"程序启动：自启动={startedByAutoStart}，参数={arguments}，exe={AutoStartManager.ExecutablePath}");
 
-            AppDomain.CurrentDomain.UnhandledException += (s, ex) =>
-            {
-                var exception = ex.ExceptionObject as Exception;
-                var log = $"[{DateTime.Now:HH:mm:ss}] 未处理异常：{exception?.GetType().Name}: {exception?.Message}\n{exception?.StackTrace}";
-                System.IO.File.AppendAllText(System.IO.Path.Combine(System.IO.Path.GetTempPath(), "gamehub.log"), log + "\n");
-            };
+            // 全局异常处理器：写日志 + 自动导出崩溃报告（UI 线程可弹窗，后台线程只落盘）
+            DispatcherUnhandledException += OnDispatcherUnhandledException;
+            AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
 
             base.OnStartup(e);
 
@@ -52,11 +49,17 @@ namespace GameHub
             {
                 // 已有实例可能在托盘里（窗口已隐藏）：请求它把主窗口显示出来，
                 // 否则用户会看到"已经在运行中"却找不到窗口。
-                if (!SignalExistingInstance())
+                bool signaled = SignalExistingInstance();
+
+                // 开机自启动时，第二个实例很可能是"用户自己又启动了一次"或者
+                // 注册表里残留了重复项；这种情况下不该在开机时弹一个对话框挡住用户。
+                if (!signaled && !startedByAutoStart)
                 {
                     MessageBox.Show("GameHub 已经在运行中，无法启动第二个实例。",
                         "GameHub", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
+
+                AppLog.Write($"检测到已有实例，本次启动退出（已唤回旧窗口={signaled}）");
                 Shutdown();
                 return;
             }
@@ -66,7 +69,11 @@ namespace GameHub
 
             // 清理历史遗留的按模块自启动项：全程序只保留一个 "GameHub" 项，
             // 否则“关掉其中一个开关”并不能阻止开机启动（其它项仍会拉起 GameHub）。
-            Utils.AutoStartManager.CleanupLegacyModuleEntries();
+            AutoStartManager.CleanupLegacyModuleEntries();
+
+            // 校准自启动注册路径：程序换过目录/重新发布过之后，注册表里可能还留着旧路径，
+            // 开机时 Windows 会静默跳过（界面却依旧显示 on）。这里自动重写为当前路径。
+            AutoStartManager.SyncRegisteredPath();
 
             // 设置 DPI 感知（代码级，配合 manifest 的 PerMonitorV2）
             SetDpiAwareness();
@@ -74,6 +81,40 @@ namespace GameHub
             // 初始化应用
             InitializeApp();
             DiagnoseResources();
+
+            // 主窗口：开机自启动时默认只驻留托盘，不弹出界面（可在「软件设置」里改）
+            CreateMainWindow(startedByAutoStart);
+        }
+
+        /// <summary>
+        /// 创建主窗口。
+        ///
+        /// 开机自启动时（且设置允许）先把窗口的 Opacity 设为 0 再 Show：
+        /// 这样 Loaded 里的初始化流程（托盘图标、热键、模块状态）照常跑，
+        /// 但用户完全看不到窗口闪一下；初始化结束后主窗口会自己 Hide 到托盘。
+        /// </summary>
+        private void CreateMainWindow(bool startedByAutoStart)
+        {
+            bool startHidden = startedByAutoStart && SettingsStore.Load().AutoStartMinimizedToTray;
+
+            var window = new Views.MainWindow
+            {
+                StartHiddenToTray = startHidden
+            };
+
+            MainWindow = window;
+
+            if (startHidden)
+            {
+                window.Opacity = 0;
+                window.ShowInTaskbar = false;
+            }
+
+            window.Show();
+
+            AppLog.Write(startHidden
+                ? "主窗口已创建：本次为开机自启动，初始化完成后最小化到托盘"
+                : "主窗口已创建：正常显示");
         }
 
         /// <summary>请求已在运行的实例把主窗口显示出来（成功返回 true）。</summary>
@@ -253,30 +294,66 @@ namespace GameHub
 
         private void InitializeApp()
         {
-            // 设置全局异常处理
-            DispatcherUnhandledException += OnDispatcherUnhandledException;
-            AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
-
-            // 检查是否已运行实例
-            // CheckSingleInstance();
+            // 全局异常处理已在 OnStartup 中统一注册（见上方），这里不再重复注册，
+            // 否则同一个异常会触发两次弹窗 / 两次写崩溃报告。
         }
 
+        /// <summary>UI 线程崩溃：落盘 + 自动导出报告，再提示用户（并尝试让程序继续运行）。</summary>
         private void OnDispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
         {
-            MessageBox.Show($"发生错误：{e.Exception.Message}", "错误", 
-                MessageBoxButton.OK, MessageBoxImage.Error);
+            HandleCrash(e.Exception, "UI 线程");
             e.Handled = true;
         }
 
+        /// <summary>后台线程崩溃：进程即将终止，无法安全弹窗，只尽力把报告写下来。</summary>
         private void OnUnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
-            var exception = e.ExceptionObject as Exception;
-            MessageBox.Show($"发生严重错误：{exception?.Message}", "错误", 
-                MessageBoxButton.OK, MessageBoxImage.Error);
+            try
+            {
+                HandleCrash(e.ExceptionObject as Exception, "后台线程");
+            }
+            catch
+            {
+                // 崩溃处理本身失败也不能影响退出
+            }
+        }
+
+        /// <summary>统一崩溃处理：写日志 + 自动导出崩溃报告；仅在 UI 线程时弹窗提示。</summary>
+        private void HandleCrash(Exception? exception, string scope)
+        {
+            AppLog.Write($"{scope}未处理异常：{exception?.GetType().FullName}: {exception?.Message}\n{exception?.StackTrace}");
+
+            string? reportPath = null;
+            try
+            {
+                reportPath = DiagnosticsReport.SaveCrashReport(exception);
+            }
+            catch (Exception reportEx)
+            {
+                AppLog.Write($"自动保存崩溃报告失败：{reportEx.GetType().Name}: {reportEx.Message}");
+            }
+
+            // 只有 UI 线程能安全弹窗；后台线程崩溃时进程要结束，弹了也可能看不到
+            if (Dispatcher.CheckAccess())
+            {
+                try
+                {
+                    string msg = "程序发生错误，已自动保存错误报告：\n" + (reportPath ?? "(保存失败)") + "\n\n是否打开报告所在目录？";
+                    var result = MessageBox.Show(msg, "GameHub 崩溃提示", MessageBoxButton.YesNo, MessageBoxImage.Error);
+                    if (result == MessageBoxResult.Yes)
+                        DiagnosticsReport.OpenReportDirectory(reportPath);
+                }
+                catch
+                {
+                    // 弹窗失败也不影响主流程
+                }
+            }
         }
 
         protected override void OnExit(ExitEventArgs e)
         {
+            AppLog.Write($"程序退出：退出码={e.ApplicationExitCode}");
+
             // 先停掉激活监听，再释放互斥体，避免退出过程中访问已销毁的对象
             try
             {

@@ -93,6 +93,27 @@ namespace GameHub.Utils
             _notifyIcon = notifyIcon;
         }
 
+        /// <summary>
+        /// 弹一个托盘气泡提示（Windows 10/11 会显示为右下角通知）。
+        /// 开机自启动时主窗口是不显示的，用它告诉用户“程序已经在后台跑起来了”，
+        /// 否则用户很容易以为自启动没生效。
+        /// </summary>
+        public void ShowBalloon(string title, string text)
+        {
+            var notifyIcon = _notifyIcon;
+            if (notifyIcon == null)
+                return;
+
+            try
+            {
+                notifyIcon.ShowBalloonTip(3000, title, text, WinForms.ToolTipIcon.Info);
+            }
+            catch (Exception ex)
+            {
+                Log($"托盘气泡提示失败 {ex.GetType().Name}: {ex.Message}");
+            }
+        }
+
         // ---------- 内部实现 ----------
 
         private static WinForms.ToolStripMenuItem CreateMenuItem(string text, Action onClick)
@@ -157,19 +178,7 @@ namespace GameHub.Utils
         }
 
         /// <summary>记录日志到 %TEMP%\gamehub.log（与程序其它部分的日志保持一致）。</summary>
-        private static void Log(string message)
-        {
-            try
-            {
-                System.IO.File.AppendAllText(
-                    System.IO.Path.Combine(System.IO.Path.GetTempPath(), "gamehub.log"),
-                    $"[{DateTime.Now:HH:mm:ss}] {message}\n");
-            }
-            catch
-            {
-                // 忽略
-            }
-        }
+        private static void Log(string message) => AppLog.Write(message);
 
         /// <summary>
         /// 销毁托盘图标。在 UI 线程（主窗口 Closed 事件里）调用。

@@ -70,11 +70,14 @@ namespace GameHub.Utils
             int id = _nextId++;
             if (!RegisterHotKey(_hwnd, id, modifiers | MOD_NOREPEAT, vk))
             {
-                error = "热键已被其他程序占用";
+                int winError = Marshal.GetLastWin32Error();
+                error = $"热键已被其他程序占用（WinError={winError}）";
+                AppLog.Write($"RegisterHotKey 失败：gesture={gesture}，WinError={winError}");
                 return false;
             }
 
             _handlers[id] = callback;
+            AppLog.Write($"热键注册成功：gesture={gesture}，id={id}");
             return true;
         }
 
@@ -94,8 +97,14 @@ namespace GameHub.Utils
                 int id = wParam.ToInt32();
                 if (_handlers.TryGetValue(id, out var handler))
                 {
+                    AppLog.Write($"热键触发：id={id}");
                     handler();
                     handled = true;
+                }
+                else
+                {
+                    // 会到这里通常代表：热键被外部注销 / 回调表与系统状态不一致
+                    AppLog.Write($"热键触发但找不到处理器：id={id}（可能已被注销或注册表不一致）");
                 }
             }
             return IntPtr.Zero;
@@ -106,6 +115,7 @@ namespace GameHub.Utils
         {
             if (_hwnd != IntPtr.Zero)
             {
+                AppLog.Write($"UnregisterAll：正在注销 {_handlers.Count} 个热键");
                 foreach (var id in _handlers.Keys)
                     UnregisterHotKey(_hwnd, id);
             }

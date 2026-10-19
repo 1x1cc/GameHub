@@ -206,7 +206,11 @@ namespace GameHub.Utils
             }
 
             if (hr != 0 || raw == null)
+            {
+                int failHr = hr != 0 ? hr : unchecked((int)0x80004005); // E_FAIL
+                AppLog.Write($"CreatePolicyConfig 失败：hr=0x{failHr:X8}（无法创建 IPolicyConfig，切换默认设备将失败）");
                 return null;
+            }
 
             try
             {
@@ -231,10 +235,13 @@ namespace GameHub.Utils
                     return false;
 
                 int hr = policy.SetDefaultEndpoint(deviceId, role);
+                if (hr != 0)
+                    AppLog.Write($"SetDefaultEndpoint 失败：hr=0x{hr:X8}，role={role}，device={deviceId}");
                 return hr == 0;
             }
-            catch
+            catch (Exception ex)
             {
+                AppLog.Write($"SetDefaultEndpoint 异常：role={role}，device={deviceId}", ex);
                 return false;
             }
             finally

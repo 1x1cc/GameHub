@@ -32,6 +32,12 @@ namespace GameHub.Views
         /// <summary>“已最小化到托盘”的提示每次运行只弹一次，避免每次关闭都打扰。</summary>
         private bool _trayTipShown;
 
+        /// <summary>
+        /// true：本次由“开机自启动”拉起，主窗口初始化完成后只驻留托盘、不显示界面。
+        /// 由 App 在 Show() 之前设置（见 App.CreateMainWindow）。
+        /// </summary>
+        public bool StartHiddenToTray { get; set; }
+
         public MainWindow()
         {
             InitializeComponent();
@@ -55,12 +61,41 @@ namespace GameHub.Views
                 InitializeTrayIcon();
                 await RefreshAllAsync();
                 LogMessage("主窗口加载完成");
+
+                if (StartHiddenToTray)
+                    HideToTrayAfterAutoStart();
             }
             catch (Exception ex)
             {
                 LogMessage($"主窗口加载异常：{ex.GetType().Name}: {ex.Message}");
                 LogMessage($"堆栈：{ex.StackTrace}");
             }
+        }
+
+        /// <summary>
+        /// 开机自启动时，初始化完成后把主窗口藏进系统托盘。
+        ///
+        /// App 为了让启动过程完全不可见，会先把 Opacity 设为 0；这里无论走哪条分支
+        /// 都要把它恢复，否则用户从托盘唤回窗口时看到的会是一个“透明”窗口。
+        /// </summary>
+        private void HideToTrayAfterAutoStart()
+        {
+            Opacity = 1;
+            ShowInTaskbar = true;
+
+            if (_tray?.IsReady != true)
+            {
+                // 没有托盘图标就绝不能把窗口藏起来，否则用户根本找不到程序
+                LogMessage("开机自启动：托盘图标不可用，保持主窗口显示");
+                Activate();
+                return;
+            }
+
+            Hide();
+            _trayTipShown = true;
+
+            LogMessage("开机自启动：已自动最小化到托盘，程序在后台运行（热键仍然生效）");
+            _tray.ShowBalloon("GameHub 已在后台运行", "双击托盘图标可以打开主界面");
         }
 
         // ---------- 模块 ----------
@@ -93,6 +128,22 @@ namespace GameHub.Views
             await RefreshAllAsync();
         }
 
+        /// <summary>打开"诊断报告 / 报错"窗口，帮助用户一键取日志。</summary>
+        private void CrashReport_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var window = new CrashReportWindow { Owner = this };
+                window.ShowDialog();
+            }
+            catch (Exception ex)
+            {
+                LogMessage($"打开诊断报告窗口异常：{ex.GetType().Name}: {ex.Message}");
+                MessageBox.Show("打开诊断报告窗口失败：" + ex.Message, "GameHub",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+        }
+
         /// <summary>点击卡片非按钮区域 → 打开该模块的内置功能面板。</summary>
         private void ModuleCard_Click(object sender, MouseButtonEventArgs e)
         {
@@ -105,21 +156,52 @@ namespace GameHub.Views
         private void UpdateHubAutoStartButton()
         {
             bool enabled = AutoStartManager.IsEnabled();
+            bool ready = AutoStartManager.IsReady();
+
             HubAutoStartButton.Content = enabled ? "开机自启动 on" : "开机自启动 off";
-            // 颜色由 enabled 决定，不是 hover
-            HubAutoStartButton.Background = enabled
-                ? new SolidColorBrush(Color.FromRgb(0x50, 0xC8, 0x78))
-                : new SolidColorBrush(Color.FromRgb(0x9E, 0x9E, 0x9E));
+
+            // 颜色表示“到底能不能用”，不是 hover：
+            //   灰=未开启；绿=已开启且注册正常；橙=已开启但（路径失效/被系统禁用）开机不会生效
+            HubAutoStartButton.Background = !enabled
+                ? new SolidColorBrush(Color.FromRgb(0x9E, 0x9E, 0x9E))
+                : ready
+                    ? new SolidColorBrush(Color.FromRgb(0x50, 0xC8, 0x78))
+                    : new SolidColorBrush(Color.FromRgb(0xE8, 0xA3, 0x3D));
+
+            // 悬停即可看到注册表里的真实状态，不用再去翻注册表
+            HubAutoStartButton.ToolTip = AutoStartManager.GetStatusReport();
         }
 
         private async void HubAutoStart_Click(object sender, RoutedEventArgs e)
         {
-            // 异步执行注册表操作，避免阻塞 UI 线程
-            await Task.Run(() =>
+            HubAutoStartButton.IsEnabled = false;
+            try
             {
-                AutoStartManager.Toggle();
-            });
-            UpdateHubAutoStartButton();
+                // 异步执行注册表操作，避免阻塞 UI 线程
+                await Task.Run(() => AutoStartManager.Toggle());
+                UpdateHubAutoStartButton();
+
+                if (AutoStartManager.IsEnabled() && !AutoStartManager.IsReady())
+                {
+                    // 注册表写进去了但系统层面不会执行：必须明确告知，
+                    // 否则又会出现“开关是 on、开机却没反应”这种最容易被误解的状态。
+                    LogMessage($"开机自启动：开启后自检未通过\n{AutoStartManager.GetStatusReport()}");
+                    NotificationManager.ShowInfo("开机自启动可能不会生效", AutoStartManager.GetStatusSummary());
+                }
+                else if (AutoStartManager.IsEnabled())
+                {
+                    NotificationManager.ShowInfo("已开启开机自启动",
+                        "下次登录 Windows 时 GameHub 会在后台启动并最小化到托盘");
+                }
+                else
+                {
+                    NotificationManager.ShowInfo("已关闭开机自启动", "登录 Windows 后不再自动启动 GameHub");
+                }
+            }
+            finally
+            {
+                HubAutoStartButton.IsEnabled = true;
+            }
         }
 
         // ---------- 热键 ----------
@@ -206,6 +288,8 @@ namespace GameHub.Views
                     string? nextDeviceName = null;
                     string? failureReason = null;
 
+                    AppLog.Write($"热键切换开始：{flow}，勾选目标数={targetIds?.Count ?? 0}，当前在线设备数={devices.Count}");
+
                     // 如果有勾选的设备，在这些设备间切换
                     if (targetIds != null && targetIds.Count > 0)
                     {
@@ -234,6 +318,8 @@ namespace GameHub.Views
                             int nextIndex = (currentIndex + 1) % filteredDevices.Count;
                             var nextDevice = filteredDevices[nextIndex];
 
+                            AppLog.Write($"热键切换[{flow}]：当前默认={currentDevice?.Name}({currentDevice?.Id})，当前索引={currentIndex}，下一个={nextDevice.Name}({nextDevice.Id})");
+
                             // 执行切换
                             if (AudioDeviceService.SetDefaultDevice(nextDevice.Id))
                                 nextDeviceName = nextDevice.Name;
@@ -244,6 +330,7 @@ namespace GameHub.Views
                         {
                             // 只有一个勾选设备，切换回当前默认（如果不是它）
                             var currentDevice = devices.Find(d => d.IsDefault);
+                            AppLog.Write($"热键切换[{flow}]：仅一个勾选设备 {filteredDevices[0].Name}({filteredDevices[0].Id})，当前默认={currentDevice?.Name}({currentDevice?.Id})");
                             if (currentDevice != null && currentDevice.Id != filteredDevices[0].Id)
                             {
                                 if (AudioDeviceService.SetDefaultDevice(filteredDevices[0].Id))
@@ -303,8 +390,7 @@ namespace GameHub.Views
                 }
                 catch (Exception ex)
                 {
-                    var log = $"[{DateTime.Now:HH:mm:ss}] 热键异常：{ex.GetType().Name}: {ex.Message}\n{ex.StackTrace}";
-                    File.AppendAllText(Path.Combine(Path.GetTempPath(), "gamehub-hotkey.log"), log + "\n");
+                    AppLog.Write($"热键异常：{ex.GetType().Name}: {ex.Message}\n{ex.StackTrace}");
                 }
             };
         }
@@ -337,12 +423,8 @@ namespace GameHub.Views
             }
         }
 
-        /// <summary>记录日志到文件。</summary>
-        private void LogMessage(string message)
-        {
-            var log = $"[{DateTime.Now:HH:mm:ss}] {message}";
-            File.AppendAllText(Path.Combine(Path.GetTempPath(), "gamehub.log"), log + "\n");
-        }
+        /// <summary>记录日志到文件（统一走 AppLog：串行写入、带日期、UTF-8 BOM）。</summary>
+        private void LogMessage(string message) => AppLog.Write(message);
 
         /// <summary>面板关闭后刷新卡片状态（默认设备可能已改变）。</summary>
         public async void NotifyPanelClosed()

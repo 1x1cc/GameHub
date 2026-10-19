@@ -170,9 +170,17 @@
         </ScrollViewer>
 
         <!-- 底部按钮 -->
-        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
-            <Button Content="保存并应用" Style="{StaticResource PrimaryButton}" Click="Save_Click"/>
-            <Button Content="关闭" Style="{StaticResource SecondaryButton}" Margin="8,0,0,0" Click="Close_Click"/>
-        </StackPanel>
+        <Grid Grid.Row="2" Margin="0,12,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <Button Grid.Column="0" Content="报错/日志" Style="{StaticResource SecondaryButton}"
+                    HorizontalAlignment="Left" Click="CrashReport_Click"/>
+            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                <Button Content="保存并应用" Style="{StaticResource PrimaryButton}" Click="Save_Click"/>
+                <Button Content="关闭" Style="{StaticResource SecondaryButton}" Margin="8,0,0,0" Click="Close_Click"/>
+            </StackPanel>
+        </Grid>
     </Grid>
 </Window>

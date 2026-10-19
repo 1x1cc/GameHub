@@ -69,6 +69,14 @@ namespace GameHub.Utils
         /// 用户在关闭对话框里勾选「记住我的选择」后写入，也可在「软件设置」中更改。
         /// </summary>
         public string CloseAction { get; set; } = CloseBehavior.Ask;
+
+        /// <summary>
+        /// 开机自启动拉起时：
+        ///   true          = 只驻留系统托盘、不弹出主窗口，热键立即生效；
+        ///   false（默认） = 和手动启动一样正常显示主窗口。
+        /// 手动启动（双击 exe / 开始菜单）不受此项影响，始终显示主窗口。
+        /// </summary>
+        public bool AutoStartMinimizedToTray { get; set; } = false;
     }
 
     /// <summary>

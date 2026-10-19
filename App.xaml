@@ -1,7 +1,10 @@
 <Application x:Class="GameHub.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             StartupUri="Views/MainWindow.xaml">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- 不再使用 StartupUri：
+         主窗口需要在 OnStartup 里按命令行（是否为开机自启动）决定"显示"还是"只驻留托盘"，
+         StartupUri 会无条件把窗口显示出来，来不及做这个判断。 -->
+
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>

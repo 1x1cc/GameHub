@@ -113,6 +113,8 @@
                             Style="{StaticResource ActionButtonStyle}" Click="Settings_Click"/>
                     <Button Content="刷新" Width="70" Height="30" Margin="8,0,0,0"
                             Style="{StaticResource ActionButtonStyle}" Click="Refresh_Click"/>
+                    <Button Content="报错/日志" Width="92" Height="30" Margin="8,0,0,0"
+                            Style="{StaticResource ActionButtonStyle}" Click="CrashReport_Click"/>
                 </StackPanel>
             </Grid>
         </Border>

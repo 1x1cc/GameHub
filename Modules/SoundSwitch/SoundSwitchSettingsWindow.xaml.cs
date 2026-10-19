@@ -198,6 +198,22 @@ namespace GameHub.Modules.SoundSwitch
 
         private void Close_Click(object sender, RoutedEventArgs e) => Close();
 
+        /// <summary>打开"诊断报告 / 报错"窗口（排查“切设备后热键没反应”）。</summary>
+        private void CrashReport_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var window = new Views.CrashReportWindow { Owner = this };
+                window.ShowDialog();
+            }
+            catch (Exception ex)
+            {
+                AppLog.Write("打开诊断报告窗口异常", ex);
+                MessageBox.Show("打开诊断报告窗口失败：" + ex.Message, "SoundSwitch",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+        }
+
         private void NotifyMainWindow(bool reloadHotkeys = false)
         {
             if (Application.Current?.MainWindow is Views.MainWindow main)

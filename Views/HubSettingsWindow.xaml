@@ -102,6 +102,18 @@
                     </StackPanel>
                 </Border>
 
+                <Border Style="{StaticResource Card}">
+                    <StackPanel>
+                        <TextBlock Text="开机自启动" Style="{StaticResource SectionTitle}"/>
+
+                        <CheckBox x:Name="AutoStartTrayCheck" FontSize="12" Foreground="#22303F"
+                                  Content="开机自启动后最小化到托盘运行（不弹出主窗口）"/>
+
+                        <TextBlock Style="{StaticResource Hint}" Margin="0,10,0,0"
+                                   Text="开启后，登录 Windows 时 GameHub 会在后台启动：只显示托盘图标、热键立即可用，双击托盘图标就能打开主界面。取消勾选则自启动时和手动打开一样直接显示主窗口。手动打开程序不受此项影响。"/>
+                    </StackPanel>
+                </Border>
+
             </StackPanel>
         </ScrollViewer>
 

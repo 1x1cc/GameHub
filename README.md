@@ -25,6 +25,28 @@ https://hk.gh-proxy.com/       + https://github.com/1x1cc/GameHub/releases/downl
 
 > 镜像为第三方公益服务，可用性可能变化；如失效请直接用原始 GitHub 链接。
 
+## 覆盖安装 / 更新（重复安装新版不报错）
+
+GameHub 是绿色免安装的：解压后直接双击 `GameHub.exe` 即可。
+如果你想把新版覆盖到固定目录，或**已装过旧版想无报错覆盖更新**，用仓库里的安装脚本：
+
+1. 下载并解压新版压缩包；
+2. 在解压目录里双击 `安装 GameHub.bat`，或右键 `install.ps1` →「使用 PowerShell 运行」；
+3. 脚本会自动完成：
+   - 关闭正在运行的旧 GameHub（避免“文件被占用”的覆盖报错）；
+   - 把新版**覆盖**到安装目录 `%LOCALAPPDATA%\Programs\GameHub`；
+   - **保留你的设置** `%APPDATA%\GameHub\settings.json`（热键、关闭行为等不丢）；
+   - 清理缓存：`%TEMP%\gamehub.log`、`gamehub-res.log` 以及旧崩溃报告；
+   - 修正开机自启动指向的新路径，并在开始菜单创建「GameHub」快捷方式。
+
+安装目录默认是 `%LOCALAPPDATA%\Programs\GameHub`，可用 `-InstallDir` 改成别处：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File install.ps1 -InstallDir "D:\Tools\GameHub"
+```
+
+常用参数：`-KeepLogs`（保留日志不清理）、`-NoShortcut`（不创建快捷方式）。
+
 ## 资源占用
 
 在 Windows 11 + .NET 8 上实测（空闲状态，窗口打开、无操作）：
