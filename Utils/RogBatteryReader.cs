@@ -43,17 +43,24 @@ namespace GameHub.Utils
     ///       - 鼠电子命令 0x07：回复回显 [1]=0x12 [2]=0x07；百分比在 [5]
     ///         （老鼠标是 0–4 档位，×25 换算）；充电中 [10]!=0；
     ///   · 接收器代答「设备无应答」标记：[1]=0xFF [2]=0xAA（设备休眠/关机）；
-    ///   · OMNI 多设备接收器（PID 0x1ACE）：配对列表命令 [0x01, 0xA0, 0x00] 发到
-    ///     mi_02/col01，回复 [5..] 按 4 字节槽位存配对设备 PID（小端 u16，遇 0 结束）；
-    ///     配对键盘走 mi_02/col02（report id 0x02）、鼠标走 mi_02/col03（report id 0x03）。
+    ///   · OMNI 多设备接收器（PID 0x1ACE）：转发通道 mi_02/col02（report id 0x02）接键盘、
+    ///     mi_02/col03（report id 0x03）接鼠标——接收器把 [0x12, 0x01/0x07] 转给设备并代答电量。
+    ///     【设备在不在线，只看这两条通道有没有应答】。控制集合 mi_02/col01 上另有接收器
+    ///     自答命令（0xA0 子命令 0x00 曾被当成“配对列表”），但 2026-10-20 实机确认：
+    ///     键盘经接收器正常打字、电量也读得到时，它照样回全 0。所以它只能当型号命名提示，
+    ///     绝不能当在线判据（早期版本就是拿它判在线，才会出现“能打字却显示未连接”）。
     ///
     /// 未收录型号（如 2025 年末的新品）出现在 OMNI 配对列表里时，会按
     /// 「键盘（夜魔家族布局优先）→ 鼠标」的顺序用只读查询试探并推断布局，读数带
     /// 「推断」标注，回复原始字节写入日志，方便日后精确收录。
     ///
     /// 实机验证记录（本机 ROG OMNI RECEIVER + ROG AZOTH X，2026-10）：
-    ///   · 接收器自答命令（不转发给设备）：mi_02/col01 rid 0x01 cmd 0xA0 sub 0x00 取配对列表；
-    ///     cmd 0xA1 sub 0x00 取接收器序列号（ASCII），sub 0x01 取状态（08 00 07）；cmd 0xA2 返回全 0。
+    ///   · 接收器自答命令（不转发给设备）：mi_02/col01 rid 0x01 cmd 0xA0 sub 0x00；
+    ///     cmd 0xA1 sub 0x00 取接收器序列号（ASCII T5MPKRD01SGN），sub 0x01 取状态（08 00 07）。
+    ///   · 键盘 2.4G 经接收器（2026-10-20 实测，设备正在打字时）：发 02 12 01 到 col02 →
+    ///     回 02 12 01 00 00 00 64 02 01 00 14 64 EB 10 …，即 [6]=0x64=100%、[9]=0 未充电；
+    ///     同一时刻 col03（鼠标）回 FF AA（没有鼠标），而 cmd 0xA0 sub 0x00 回全 0
+    ///     ——所以「配对列表」不能用来判断设备在不在线。
     ///   · col02（0xFF00，配 report id 0x02）与 col03（0xFF01，rid 0x03）会转发命令；
     ///     设备不在线时接收器代答 [1]=0xFF [2]=0xAA（设备未应答），此时任何子命令都读不到电量。
     ///   · 键盘有线直连（VID_0B05/PID_1C24）时走 mi_01（usage 0xFF00，65 字节报告，
@@ -310,57 +317,76 @@ namespace GameHub.Utils
                 if (col01 == null)
                     continue;
 
+                // 配对列表只用来给读数配型号名（认得的 PID → 正式型号名），
+                // 【2026-10-20 实机踩坑】键盘经接收器正常打字、电量也读得到时，
+                // 这条命令照样可能回全 0（当时用户看到的就是“能打字却显示未连接”）。
+                // 所以：配对列表为空 ≠ 设备没连上，它绝不能当在线判据；
+                // 在不在线只看 col02 / col03 转发通道有没有应答。
                 List<ushort>? paired = ReadOmniPairedList(col01);
-                if (paired == null)
+                var registered = paired ?? new List<ushort>();
+
+                AppLog.Write(registered.Count > 0
+                    ? $"EasyBluetooth/ROG：OMNI 接收器 {instance} 配对列表：" +
+                      string.Join(", ", registered.Select(p => $"0x{p:X4}"))
+                    : $"EasyBluetooth/ROG：OMNI 接收器 {instance} 配对列表为空或读取失败" +
+                      "（该结果不作为在线判据，继续直读转发通道）");
+
+                var rows = new List<RogBatteryReading>();
+                var probed = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                var unlisted = new List<ushort>();
+
+                // ① 配对列表里认得型号的：用正式型号名去问它自己那条通道
+                foreach (ushort pid in registered)
                 {
-                    AppLog.Write($"EasyBluetooth/ROG：OMNI 接收器 {instance} 配对列表读取失败");
-                    continue;
-                }
-
-                if (paired.Count == 0)
-                {
-                    // 实机常见：接收器在，但键盘没连上（档位不在 2.4G / 休眠 / 未配对 / 只插了线）。
-                    // 以前这里什么都不写，用户只看到「列表里没有键盘」，以为是软件不认设备；
-                    // 现在补一条接收器状态行，把原因直接写清楚。
-                    AppLog.Write($"EasyBluetooth/ROG：OMNI 接收器 {instance} 当前没有配对/在线的无线设备" +
-                                 "（若键盘没插线，请确认键盘档位在 2.4G 且已和接收器配对）");
-
-                    result[$"omni-status:{instance}"] = new RogBatteryReading
-                    {
-                        Id = col01,
-                        Name = "ROG OMNI RECEIVER（接收器在线，无已连接设备）",
-                        ProductId = OmniReceiverPid,
-                        IsWireless = true,
-                        Percent = null,
-                        IsReceiverStatus = true,
-                        Note = "接收器读到了，但配对列表为空：键盘/鼠标未连接。" +
-                               "请确认设备电源已开、档位在 2.4G；若设备只能用有线，插 USB 线后即可直接读电量"
-                    };
-                    continue;
-                }
-
-                AppLog.Write($"EasyBluetooth/ROG：OMNI 接收器 {instance} 配对 {paired.Count} 台设备：" +
-                             string.Join(", ", paired.Select(p => $"0x{p:X4}")));
-
-                foreach (ushort pid in paired)
-                {
-                    string key = $"omni:{instance}:{pid:X4}";
                     var model = Models.FirstOrDefault(m => m.IsOmni && m.Pid == pid);
-                    RogBatteryReading? reading;
-
-                    if (model != null)
+                    if (model == null)
                     {
-                        string? channelPath = model.IsMouse ? col03 : col02;
-                        reading = channelPath != null ? QueryOnPath(channelPath, model) : null;
+                        unlisted.Add(pid);
+                        continue;
+                    }
+
+                    string? channelPath = model.IsMouse ? col03 : col02;
+                    if (channelPath == null || !probed.Add(channelPath))
+                        continue;
+
+                    var reading = QueryOnPath(channelPath, model);
+                    if (reading != null)
+                        rows.Add(reading);
+                }
+
+                // ② 不看配对列表，直接问两条转发通道：设备在线 → 接收器代答电量；
+                //    不在线 → 回 FF AA。这才是判断“在不在”的唯一实锤。
+                if (col02 != null && probed.Add(col02))
+                {
+                    var reading = ReadOmniChannel(col02, 0x02, isMouse: false, unlisted.FirstOrDefault());
+                    if (reading != null)
+                        rows.Add(reading);
+                }
+
+                if (col03 != null && probed.Add(col03))
+                {
+                    var reading = ReadOmniChannel(col03, 0x03, isMouse: true, unlisted.FirstOrDefault());
+                    if (reading != null)
+                        rows.Add(reading);
+                }
+
+                // ③ 两条通道都没应答：登记过的按“未应答”逐台提示，否则给接收器状态行
+                if (rows.Count == 0)
+                {
+                    if (registered.Count > 0)
+                    {
+                        foreach (ushort pid in registered)
+                            rows.Add(Asleep(col01, pid, $"ROG 设备 (OMNI, PID 0x{pid:X4})",
+                                "接收器登记了这台设备，但通道没有应答：设备可能已关机、休眠或未连接"));
                     }
                     else
                     {
-                        reading = InferOmniReading(col02, col03, pid);
+                        rows.Add(ReceiverIdleStatus(col01));
                     }
-
-                    if (reading != null)
-                        result[key] = reading;
                 }
+
+                foreach (var reading in rows)
+                    result[$"omni:{instance}:{reading.Id}"] = reading;
             }
         }
 
@@ -402,133 +428,132 @@ namespace GameHub.Utils
         }
 
         /// <summary>
-        /// OMNI 上未收录型号的推断：先按键盘（夜魔家族布局优先）查询，
-        /// 通道完全不应答时再按鼠标查询。都是只读命令，最坏情况是设备不理你。
+        /// 直读 OMNI 接收器的转发通道（键盘 mi_02/col02 report id 0x02，
+        /// 鼠标 mi_02/col03 report id 0x03）。
+        ///
+        /// 接收器会把命令转给当前连接的设备：设备在线 → 代答真实电量；
+        /// 设备不在线 → 回 [1]=0xFF [2]=0xAA（无应答）→ 返回 null，
+        /// 由上层决定是报“设备未应答”还是只写一条接收器状态行。
+        ///
+        /// unlistedPid：配对列表里登记过、但本表没收录的 PID（仅用于命名）；0 = 连 PID 也没报到。
         /// </summary>
-        private static RogBatteryReading InferOmniReading(string? col02, string? col03, ushort pid)
+        private static RogBatteryReading? ReadOmniChannel(
+            string path, byte reportId, bool isMouse, ushort unlistedPid)
         {
-            if (col02 != null)
+            var kind = TransactOnPath(path, reportId,
+                isMouse ? SubMouseBattery : SubKeyboardBattery, out byte[]? reply);
+
+            if (kind != ReplyKind.Reply || reply == null)
+                return null;   // 无应答（FF AA）/ 超时：这条通道上没有设备
+
+            string hex = BitConverter.ToString(reply, 0, Math.Min(20, reply.Length));
+            AppLog.Write($"EasyBluetooth/ROG：OMNI {(isMouse ? "鼠标" : "键盘")}通道" +
+                         $"（rid 0x{reportId:X2}）回复 {hex}");
+
+            string name = unlistedPid != 0
+                ? $"ROG {(isMouse ? "鼠标" : "键盘")} (OMNI, PID 0x{unlistedPid:X4})"
+                : $"ROG {(isMouse ? "鼠标" : "键盘")}（OMNI 接收器 · 2.4G）";
+
+            if (isMouse)
             {
-                var kind = TransactOnPath(col02, 0x02, SubKeyboardBattery, out byte[]? reply);
+                int percent = reply[5];
+                bool charging = reply[10] != 0;
 
-                if (kind == ReplyKind.NoAnswer)
-                    return Asleep(col02, pid, $"ROG 键盘 (OMNI, PID 0x{pid:X4})",
-                        "设备未应答（可能休眠或关机）");
+                if (percent > 100)
+                    return UnknownShape(path, name, unlistedPid);
 
-                if (kind == ReplyKind.Reply && reply != null)
+                if (percent == 0 && !charging)
+                    return Asleep(path, unlistedPid, name, "电量 0 且未充电，视为休眠/关机");
+
+                AppLog.Write($"EasyBluetooth/ROG：{name} 电量 {percent}%（充电={charging}）");
+                return new RogBatteryReading
                 {
-                    string hex = BitConverter.ToString(reply, 0, Math.Min(16, reply.Length));
-                    AppLog.Write($"EasyBluetooth/ROG：未收录型号 PID 0x{pid:X4} 键盘回复 {hex}");
-
-                    // 充电位应是 0/1；夜魔家族：[6] 是 0–10 档位表、[11] 是百分比
-                    if (reply[9] is 0 or 1)
-                    {
-                        if (reply[6] <= 10 && reply[11] <= 100)
-                        {
-                            int percent = reply[11];
-                            bool charging = reply[9] == 1;
-                            if (percent == 0 && !charging)
-                                return Asleep(col02, pid, $"ROG 键盘 (OMNI, PID 0x{pid:X4})",
-                                    "电量 0 且未充电，视为休眠/关机");
-
-                            AppLog.Write($"EasyBluetooth/ROG：未收录型号 PID 0x{pid:X4}" +
-                                         $"推断为夜魔家族键盘，电量 {percent}%（充电={charging}）");
-                            return new RogBatteryReading
-                            {
-                                Id = col02,
-                                Name = $"ROG 键盘 (OMNI, PID 0x{pid:X4})",
-                                ProductId = pid,
-                                IsWireless = true,
-                                Percent = percent,
-                                IsCharging = charging,
-                                Gauge = reply[6],
-                                Note = "未收录型号：按夜魔家族布局推断，读数仅供参考"
-                            };
-                        }
-
-                        if (reply[6] <= 100)
-                        {
-                            int percent = reply[6];
-                            bool charging = reply[9] == 1;
-                            if (percent == 0 && !charging)
-                                return Asleep(col02, pid, $"ROG 键盘 (OMNI, PID 0x{pid:X4})",
-                                    "电量 0 且未充电，视为休眠/关机");
-
-                            AppLog.Write($"EasyBluetooth/ROG：未收录型号 PID 0x{pid:X4}" +
-                                         $"推断为标准布局键盘，电量 {percent}%（充电={charging}）");
-                            return new RogBatteryReading
-                            {
-                                Id = col02,
-                                Name = $"ROG 键盘 (OMNI, PID 0x{pid:X4})",
-                                ProductId = pid,
-                                IsWireless = true,
-                                Percent = percent,
-                                IsCharging = charging,
-                                Note = "未收录型号：按标准键盘布局推断，读数仅供参考"
-                            };
-                        }
-                    }
-
-                    return new RogBatteryReading
-                    {
-                        Id = col02,
-                        Name = $"ROG 设备 (OMNI, PID 0x{pid:X4})",
-                        ProductId = pid,
-                        IsWireless = true,
-                        Percent = null,
-                        Note = "未收录型号：回复布局未能识别（原始字节已写入日志）"
-                    };
-                }
+                    Id = path,
+                    Name = name,
+                    ProductId = unlistedPid,
+                    IsWireless = true,
+                    Percent = percent,
+                    IsCharging = charging,
+                    Note = unlistedPid != 0
+                        ? "未收录型号：按鼠标布局识别，读数仅供参考"
+                        : "接收器未报型号：按鼠标布局识别（仅供参考）"
+                };
             }
 
-            if (col03 != null)
+            // 键盘回复有两种布局：
+            //   · [6] 是 0–10 档位表、[11] 才是百分比 → 夜魔家族（Falchion 系）；
+            //   · [6] 直接就是百分比 → Azoth 等。
+            int percentValue;
+            int gauge = -1;
+            string layout;
+
+            if (reply[6] <= 10 && reply[11] > reply[6] && reply[11] <= 100)
             {
-                var kind = TransactOnPath(col03, 0x03, SubMouseBattery, out byte[]? reply);
-
-                if (kind == ReplyKind.NoAnswer)
-                    return Asleep(col03, pid, $"ROG 鼠标 (OMNI, PID 0x{pid:X4})",
-                        "设备未应答（可能休眠或关机）");
-
-                if (kind == ReplyKind.Reply && reply != null)
-                {
-                    string hex = BitConverter.ToString(reply, 0, Math.Min(16, reply.Length));
-                    AppLog.Write($"EasyBluetooth/ROG：未收录型号 PID 0x{pid:X4} 鼠标回复 {hex}");
-
-                    int percent = reply[5];
-                    bool charging = reply[10] != 0;
-
-                    if (percent <= 100)
-                    {
-                        if (percent == 0 && !charging)
-                            return Asleep(col03, pid, $"ROG 鼠标 (OMNI, PID 0x{pid:X4})",
-                                "电量 0 且未充电，视为休眠/关机");
-
-                        AppLog.Write($"EasyBluetooth/ROG：未收录型号 PID 0x{pid:X4}" +
-                                     $"推断为鼠标，电量 {percent}%（充电={charging}）");
-                        return new RogBatteryReading
-                        {
-                            Id = col03,
-                            Name = $"ROG 鼠标 (OMNI, PID 0x{pid:X4})",
-                            ProductId = pid,
-                            IsWireless = true,
-                            Percent = percent,
-                            IsCharging = charging,
-                            Note = "未收录型号：按鼠标布局推断，读数仅供参考"
-                        };
-                    }
-                }
+                percentValue = reply[11];
+                gauge = reply[6];
+                layout = "夜魔家族";
             }
+            else if (reply[6] <= 100)
+            {
+                percentValue = reply[6];
+                layout = "标准";
+            }
+            else
+            {
+                return UnknownShape(path, name, unlistedPid);
+            }
+
+            bool isCharging = reply[9] == 1;
+
+            if (percentValue == 0 && !isCharging)
+                return Asleep(path, unlistedPid, name, "电量 0 且未充电，视为休眠/关机");
+
+            AppLog.Write($"EasyBluetooth/ROG：{name} 电量 {percentValue}%" +
+                         $"（充电={isCharging}，{layout}布局）");
 
             return new RogBatteryReading
             {
-                Id = col02 ?? col03 ?? string.Empty,
-                Name = $"ROG 设备 (OMNI, PID 0x{pid:X4})",
+                Id = path,
+                Name = name,
+                ProductId = unlistedPid,
+                IsWireless = true,
+                Percent = percentValue,
+                IsCharging = isCharging,
+                Gauge = gauge,
+                Note = unlistedPid != 0
+                    ? "未收录型号：按回复布局识别，读数仅供参考"
+                    : $"接收器未报型号：按{layout}布局识别（仅供参考）"
+            };
+        }
+
+        private static RogBatteryReading UnknownShape(string path, string name, ushort pid)
+            => new()
+            {
+                Id = path,
+                Name = name,
                 ProductId = pid,
                 IsWireless = true,
                 Percent = null,
-                Note = "未能识别（PID 已写入日志，可反馈给开发者收录）"
+                Note = "回复形状不符合已知布局，原始字节已写入日志"
             };
-        }
+
+        /// <summary>
+        /// 接收器在线、但两条转发通道全都没应答（设备关机 / 没连上 / 没配对）。
+        /// 措辞注意：只能写“设备未应答”，不能写“无已连接设备”——本机实测
+        /// 设备连着的时候这条命令照样可能一台设备都不报。
+        /// </summary>
+        private static RogBatteryReading ReceiverIdleStatus(string col01)
+            => new()
+            {
+                Id = $"omni-status:{col01}",
+                Name = "ROG OMNI RECEIVER（接收器在线，设备未应答）",
+                ProductId = OmniReceiverPid,
+                IsWireless = true,
+                Percent = null,
+                IsReceiverStatus = true,
+                Note = "接收器读到了，但键盘/鼠标通道都没有应答：设备可能没开机、没连上或未配对。" +
+                       "确认设备已开机并在 2.4G 档；有线连接时插 USB 线可直接读电量"
+            };
 
         // ---------- 直连设备（自带接收器 / 有线） ----------
 
