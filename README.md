@@ -40,6 +40,8 @@ https://hk.gh-proxy.com/       + https://github.com/1x1cc/GameHub/releases/downl
 ```
 
 > 镜像为第三方公益服务，可用性可能变化；如失效请直接用原始 GitHub 链接。
+>
+> 2026-10-19 实测（v1.0.2 发布包）：`gh-proxy.com` / `ghfast.top` / `hk.gh-proxy.com` 均返回 200 且文件大小正确；`ghproxy.net` 当前返回 **502 Bad Gateway**，暂不可用。
 
 ## 覆盖安装 / 更新（重复安装新版不报错）
 
