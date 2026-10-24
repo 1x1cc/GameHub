@@ -1,0 +1,728 @@
+{
+  "mouse": [
+    {
+      "pid": 6496,
+      "name": "ROG Keris (Wireless)",
+      "path": "mi_00",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 6304,
+      "name": "ROG Gladius II Wireless",
+      "path": "mi_02",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 6527,
+      "name": "ROG Gladius III Wireless",
+      "path": "mi_00",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 6656,
+      "name": "ROG Gladius III",
+      "path": "mi_00",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 6658,
+      "name": "ROG Gladius III",
+      "path": "mi_00",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 6657,
+      "name": "ROG Gladius III",
+      "path": "mi_00",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 6770,
+      "name": "ROG Gladius III AimPoint",
+      "path": "mi_00",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 6768,
+      "name": "ROG Gladius III AimPoint",
+      "path": "mi_00",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 6924,
+      "name": "ROG Gladius III AimPoint",
+      "path": "mi_00",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 6922,
+      "name": "ROG Gladius III AimPoint",
+      "path": "mi_00",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 6525,
+      "name": "ROG Gladius III",
+      "path": "mi_00",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 6523,
+      "name": "ROG Gladius III",
+      "path": "mi_00",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 6213,
+      "name": "ROG Gladius II",
+      "path": "mi_00",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 6263,
+      "name": "ROG Gladius II",
+      "path": "mi_00",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 6349,
+      "name": "ROG Gladius II",
+      "path": "mi_00",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 6682,
+      "name": "ROG Chakram X (Wireless)",
+      "path": "mi_00",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 6680,
+      "name": "ROG Chakram X",
+      "path": "mi_00",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 6373,
+      "name": "ROG Chakram (Wireless)",
+      "path": "mi_00",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 6371,
+      "name": "ROG Chakram",
+      "path": "mi_00",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 6488,
+      "name": "ROG Chakram",
+      "path": "mi_00",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 6934,
+      "name": "ROG Keris II Ace",
+      "path": "mi_00",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 7180,
+      "name": "ROG Keris II Ace",
+      "path": "mi_00",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 6760,
+      "name": "ROG Keris II Origin",
+      "path": "mi_00",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 6758,
+      "name": "ROG Keris II Origin",
+      "path": "mi_00",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 6494,
+      "name": "ROG Keris",
+      "path": "mi_00",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 6492,
+      "name": "ROG Keris",
+      "path": "mi_00",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 6745,
+      "name": "ROG Keris EVA Edition",
+      "path": "mi_00",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 6743,
+      "name": "ROG Keris EVA Edition",
+      "path": "mi_00",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 6792,
+      "name": "ROG Azoth",
+      "path": "mi_00",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 6369,
+      "name": "ROG Strix Impact II (Wireless)",
+      "path": "mi_00",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 6473,
+      "name": "ROG Strix Impact II (Wireless)",
+      "path": "mi_00",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 6471,
+      "name": "ROG Strix Impact II",
+      "path": "mi_00",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 6215,
+      "name": "ROG Strix Impact II",
+      "path": "mi_00",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 6324,
+      "name": "ROG Strix Carry (Wireless)",
+      "path": "mi_01",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 6235,
+      "name": "ROG Strix Carry",
+      "path": "mi_00",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 6804,
+      "name": "ROG Harpe Ace",
+      "path": "mi_00",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 6802,
+      "name": "ROG Harpe Ace",
+      "path": "mi_00",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 7015,
+      "name": "ROG Harpe Ace",
+      "path": "mi_00",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 7011,
+      "name": "ROG Harpe Ace",
+      "path": "mi_00",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 6214,
+      "name": "ROG Pugio",
+      "path": "mi_00",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 6408,
+      "name": "ROG Pugio II (Wireless)",
+      "path": "mi_00",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 6406,
+      "name": "ROG Pugio II",
+      "path": "mi_00",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 6521,
+      "name": "ROG Pugio II",
+      "path": "mi_00",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 6519,
+      "name": "ROG Pugio II",
+      "path": "mi_00",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 6416,
+      "name": "ROG Spatha X",
+      "path": "mi_00",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 6811,
+      "name": "ROG Spatha X",
+      "path": "mi_00",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 6659,
+      "name": "ROG Spatha",
+      "path": "mi_00",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 6296,
+      "name": "ROG Spatha",
+      "path": "mi_00",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 6644,
+      "name": "ROG TUF M3",
+      "path": "mi_00",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 6797,
+      "name": "ROG TUF M3 Gen 2",
+      "path": "mi_00",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 6901,
+      "name": "ROG TUF M4",
+      "path": "mi_00",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 6899,
+      "name": "ROG TUF M4",
+      "path": "mi_00",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 6704,
+      "name": "ROG Strix",
+      "path": "mi_00",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 6228,
+      "name": "ROG TUF M4 Wireless",
+      "path": "mi_00",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 6249,
+      "name": "ROG Gladius II Origin",
+      "path": "mi_00",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 6246,
+      "name": "ROG Gladius II Origin Pink",
+      "path": "mi_00",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 6582,
+      "name": "ROG Harpe Ace AimLab Edition",
+      "path": "mi_00",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 6178,
+      "name": "ROG Strix Impact II",
+      "path": "mi_00",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 6199,
+      "name": "ROG Strix Impact II Electro Punk",
+      "path": "mi_00",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 6218,
+      "name": "ROG Strix Impact III",
+      "path": "mi_00",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 6205,
+      "name": "ROG Pugio",
+      "path": "mi_00",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 34050,
+      "name": "ROG Strix",
+      "path": "mi_00",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 6151,
+      "name": "ROG Strix Evolve",
+      "path": "mi_00",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 6112,
+      "name": "ROG Strix Impact",
+      "path": "mi_00",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 6342,
+      "name": "ROG Strix",
+      "path": "mi_00",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 6846,
+      "name": "ROG TUF M5 Wireless",
+      "path": "mi_00",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 7258,
+      "name": "天选mini初音未来版",
+      "path": "mi_00",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 6988,
+      "name": "ROG Keris Wireless AimPoint",
+      "path": "mi_00",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 7022,
+      "name": "ROG Gladius III AimPoint (Wireless)",
+      "path": "mi_00",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 6956,
+      "name": "ROG Strix Impact III Wireless",
+      "path": "mi_00",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 34900,
+      "name": "ROG Strix",
+      "path": "mi_00",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 6946,
+      "name": "ROG Harpe Ace Extreme",
+      "path": "mi_00",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 6947,
+      "name": "ROG Harpe Ace Mini",
+      "path": "mi_00",
+      "rid": 3,
+      "type": "A"
+    }
+  ],
+  "keyboard_pids": [
+    6791,
+    6789,
+    6790,
+    7044,
+    7042,
+    7043,
+    7041,
+    6792,
+    6793,
+    6824,
+    6822,
+    6823,
+    6789,
+    6787,
+    6221,
+    6507,
+    6460,
+    6462,
+    6261,
+    6319,
+    6654,
+    6652,
+    6351,
+    6392,
+    6835,
+    7032,
+    6830,
+    6837,
+    6648,
+    6646,
+    6481,
+    6663,
+    6930,
+    6661,
+    6412,
+    6484,
+    6197,
+    6469,
+    6475,
+    6960,
+    7262,
+    6297,
+    6314,
+    6246,
+    6244,
+    6245,
+    6406,
+    6404,
+    6405,
+    6312,
+    6310,
+    6311,
+    6724,
+    6722,
+    6723,
+    6721,
+    7028,
+    7026,
+    7027,
+    7025,
+    6211,
+    6209,
+    6210,
+    6208,
+    6420,
+    6418,
+    6419,
+    6417,
+    6704,
+    6702,
+    6703,
+    6701,
+    6816,
+    6814,
+    6815,
+    6813
+  ],
+  "named_models": [
+    {
+      "pid": 6582,
+      "name": "ROG Harpe Ace AimLab Edition",
+      "path": "mi_02&col03",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 6582,
+      "name": "ROG Harpe Ace AimLab Edition",
+      "path": "mi_02&col03",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 6582,
+      "name": "ROG Harpe Ace AimLab Edition",
+      "path": "mi_02&col03",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 6947,
+      "name": "ROG Harpe Ace Mini",
+      "path": "mi_02&col03",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 6947,
+      "name": "ROG Harpe Ace Mini",
+      "path": "mi_02&col03",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 6988,
+      "name": "ROG Keris Wireless AimPoint",
+      "path": "mi_02&col03",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 6988,
+      "name": "ROG Keris Wireless AimPoint",
+      "path": "mi_02&col03",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 6988,
+      "name": "ROG Keris Wireless AimPoint",
+      "path": "mi_02&col03",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 6988,
+      "name": "ROG Keris Wireless AimPoint",
+      "path": "mi_02&col03",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 6951,
+      "name": "ROG Keris Ace II",
+      "path": "mi_02&col03",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 6951,
+      "name": "ROG Keris Ace II",
+      "path": "mi_02&col03",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 7180,
+      "name": "ROG 月刃 2 RGB",
+      "path": "mi_02&col03",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 6956,
+      "name": "ROG Strix Impact III Wireless",
+      "path": "mi_02&col03",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 7022,
+      "name": "ROG Gladius III AimPoint",
+      "path": "mi_02&col03",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 7022,
+      "name": "ROG Gladius III AimPoint",
+      "path": "mi_02&col03",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 7022,
+      "name": "ROG Gladius III AimPoint",
+      "path": "mi_02&col03",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 7022,
+      "name": "ROG Gladius III AimPoint",
+      "path": "mi_02&col03",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 7022,
+      "name": "ROG Gladius III AimPoint",
+      "path": "mi_02&col03",
+      "rid": 3,
+      "type": "A"
+    },
+    {
+      "pid": 6946,
+      "name": "ROG Harpe Ace Extreme",
+      "path": "mi_02&col03",
+      "rid": 3,
+      "type": "A"
+    }
+  ]
+}

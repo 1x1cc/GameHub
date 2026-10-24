@@ -302,12 +302,13 @@ namespace GameHub.Utils
         /// RogBatteryReader 里拿到 null 就 continue，整条 ROG OMNI 分支
         /// （配对列表 / 无线键盘电量）静默失效但日志一片干净 —— 表现为
         /// 「软件认不出 ROG 夜魔 X / AZOTH X 键盘」，有线直连却正常。
-        /// 现在同时兼容 col01 与 col_01 两种写法。
+        /// 现在同时兼容 col01 与 col_01 两种写法，并保留十六进制后缀
+        /// （雷柏设备用 col01..col0a，只取 \d+ 会把 col0a 误截成 col0）。
         /// </summary>
         internal static string? CollectionNameOf(string path)
         {
             var m = System.Text.RegularExpressions.Regex.Match(path,
-                @"col_?(\d+)", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+                @"col_?([0-9a-f]+)", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
             return m.Success ? "col" + m.Groups[1].Value.ToLowerInvariant() : null;
         }
 

@@ -137,6 +137,18 @@ namespace GameHub.Utils
 
                 try
                 {
+                    // 【2026-10-24】vendor 定义集合（usage page 0xFF00）一律跳过：
+                    //   · 它们不可能带 HID 标准电量（0x06/0x20），读了也没用；
+                    //   · 更要紧的是：对这些句柄调 HidD_GetProductString 会破坏厂商私有协议的读。
+                    //     实测雷柏 Rapoo 2.4G 设备：被取过字符串后，之后所有中断读都持续超时，
+                    //     表现为「触发帧写成功却永远收不到电量」。
+                    var topCaps = new HidpCaps { Reserved = new ushort[17] };
+                    if (HidP_GetCaps(preparsed, ref topCaps) == HidpStatusSuccess &&
+                        topCaps.UsagePage == 0xFF00)
+                    {
+                        return null;
+                    }
+
                     string name = ReadDeviceName(handle);
                     if (name.Length == 0)
                         name = $"HID {attributes.VendorID:X4}:{attributes.ProductID:X4}";

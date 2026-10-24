@@ -1,0 +1,577 @@
+[
+  {
+    "id": "xinmeng-2.4g-plugin",
+    "brand": "XINMENG / 新盟",
+    "is24g": true,
+    "supported_count": 1,
+    "class": "V",
+    "line": 105310,
+    "provider": "u"
+  },
+  {
+    "id": "xiaomi-2.4g-plugin",
+    "brand": "Xiaomi / 小米",
+    "is24g": true,
+    "supported_count": 2,
+    "class": "W",
+    "line": 106964,
+    "provider": "v"
+  },
+  {
+    "id": "wanling-jingji-2.4g-plugin",
+    "brand": "WLMOUSE",
+    "is24g": true,
+    "class": "X",
+    "line": 108520,
+    "provider": "w"
+  },
+  {
+    "id": "vaxee-2.4g-plugin",
+    "brand": "VAXEE",
+    "is24g": true,
+    "supported_count": 1,
+    "class": "Y",
+    "line": 109697,
+    "provider": "x"
+  },
+  {
+    "id": "valkyrie-2.4g-plugin",
+    "brand": "Valkyrie / 瓦尔基里",
+    "is24g": true,
+    "class": "Z",
+    "line": 110935,
+    "provider": "y"
+  },
+  {
+    "id": "turtlebeach-2.4g-plugin",
+    "brand": "Turtle Beach / 乌龟海岸",
+    "is24g": true,
+    "supported_count": 2,
+    "class": "b",
+    "line": 112260,
+    "provider": "B"
+  },
+  {
+    "id": "togar-2.4g-plugin",
+    "brand": "TOGAR / 图阁",
+    "is24g": true,
+    "supported_count": 1,
+    "class": "D",
+    "line": 113662,
+    "provider": "c"
+  },
+  {
+    "id": "steelseries-2.4g-plugin",
+    "brand": "SteelSeries / 赛睿",
+    "is24g": true,
+    "supported_count": 6,
+    "class": "e",
+    "line": 115717,
+    "provider": "E"
+  },
+  {
+    "id": "steam-2.4g-plugin",
+    "brand": "Steam / Valve",
+    "is24g": true,
+    "supported_count": 1,
+    "class": "f",
+    "line": 116859,
+    "provider": "F"
+  },
+  {
+    "id": "sony-2.4g-plugin",
+    "brand": "Sony / 索尼",
+    "is24g": true,
+    "supported_count": 8,
+    "class": "K",
+    "line": 121094,
+    "provider": "G"
+  },
+  {
+    "id": "scyrox-2.4g-plugin",
+    "brand": "赛洛斯 / SCYROX",
+    "is24g": true,
+    "supported_count": 1,
+    "class": "m",
+    "line": 122735,
+    "provider": "M"
+  },
+  {
+    "id": "royalaxe-2.4g-plugin",
+    "brand": "ROYALAXE / 御斧",
+    "is24g": true,
+    "supported_count": 1,
+    "class": "n",
+    "line": 124003,
+    "provider": "N"
+  },
+  {
+    "id": "rog-2.4g-plugin",
+    "brand": "ASUS",
+    "is24g": true,
+    "supported_count": 36,
+    "class": "o",
+    "line": 127033,
+    "provider": "O"
+  },
+  {
+    "id": "roccat-2.4g-plugin",
+    "brand": "ROCCAT",
+    "is24g": true,
+    "supported_count": 1,
+    "class": "p",
+    "line": 128886,
+    "provider": "P"
+  },
+  {
+    "id": "redragon-2.4g-plugin",
+    "brand": "REDRAGON / 红龙",
+    "is24g": true,
+    "supported_count": 1,
+    "class": "q",
+    "line": 130356,
+    "provider": "Q"
+  },
+  {
+    "id": "razer-2.4g-plugin",
+    "brand": "Razer / 雷蛇",
+    "is24g": true,
+    "class": "w",
+    "line": 136415,
+    "provider": "t"
+  },
+  {
+    "id": "rawm-2.4g-plugin",
+    "brand": "仁魔 / RAWM",
+    "is24g": true,
+    "supported_count": 2,
+    "class": "p",
+    "line": 143253,
+    "provider": "P"
+  },
+  {
+    "id": "rapoo-2.4g-plugin",
+    "brand": "Rapoo / 雷柏",
+    "is24g": true,
+    "class": "R",
+    "line": 145246,
+    "provider": "q"
+  },
+  {
+    "id": "pulsar-2.4g-plugin",
+    "brand": "Pulsar / 派世",
+    "is24g": true,
+    "supported_count": 3,
+    "class": "S",
+    "line": 146498,
+    "provider": "r"
+  },
+  {
+    "id": "pmo-2.4g-plugin",
+    "brand": "PMO",
+    "is24g": true,
+    "supported_count": 1,
+    "class": "U",
+    "line": 148382,
+    "provider": "t"
+  },
+  {
+    "id": "ninjutso-2.4g-plugin",
+    "brand": "Ninjutso",
+    "is24g": true,
+    "supported_count": 2,
+    "class": "V",
+    "line": 149595,
+    "provider": "u"
+  },
+  {
+    "id": "mision-2.4g-plugin",
+    "brand": "Mision / 觅声",
+    "is24g": true,
+    "supported_count": 1,
+    "class": "W",
+    "line": 149873,
+    "provider": "v"
+  },
+  {
+    "id": "mchose-2.4g-plugin",
+    "brand": "MCHOSE / 迈从",
+    "is24g": true,
+    "supported_count": 6,
+    "class": "x",
+    "line": 154208,
+    "provider": "X"
+  },
+  {
+    "id": "maono-2.4g-plugin",
+    "brand": "闪克 / Maono",
+    "is24g": true,
+    "supported_count": 1,
+    "class": "y",
+    "line": 156261,
+    "provider": "Y"
+  },
+  {
+    "id": "lunafury-2.4g-plugin",
+    "brand": "Lunafury",
+    "is24g": true,
+    "supported_count": 1,
+    "class": "z",
+    "line": 157937,
+    "provider": "Z"
+  },
+  {
+    "id": "logitech-hidpp-plugin",
+    "brand": "Logitech / 罗技",
+    "is24g": true,
+    "supported_count": 23,
+    "class": "c",
+    "line": 160449,
+    "provider": "C"
+  },
+  {
+    "id": "leobog-2.4g-plugin",
+    "brand": "LEOBOG / 莱奥伯格",
+    "is24g": true,
+    "supported_count": 3,
+    "class": "w",
+    "line": 166076,
+    "provider": "W"
+  },
+  {
+    "id": "lenovo-2.4g-plugin",
+    "brand": "Lenovo / 联想",
+    "is24g": true,
+    "supported_count": 1,
+    "class": "y",
+    "line": 167746,
+    "provider": "x"
+  },
+  {
+    "id": "langtu-2.4g-plugin",
+    "brand": "狼途 / LANGTU",
+    "is24g": true,
+    "source": "Langtu",
+    "supported_count": 1,
+    "class": "z",
+    "line": 168525,
+    "provider": "Z"
+  },
+  {
+    "id": "lamzu-2.4g-plugin",
+    "brand": "LAMZU",
+    "is24g": true,
+    "supported_count": 1,
+    "class": "a",
+    "line": 170374,
+    "provider": "A"
+  },
+  {
+    "id": "jingzao-2.4g-plugin",
+    "brand": "JingZao / 京东京造",
+    "is24g": true,
+    "supported_count": 1,
+    "class": "b",
+    "line": 171459,
+    "provider": "B"
+  },
+  {
+    "id": "jbl-2.4g-plugin",
+    "brand": "JBL",
+    "is24g": true,
+    "supported_count": 1,
+    "class": "c",
+    "line": 172344,
+    "provider": "C"
+  },
+  {
+    "id": "inphic-2.4g-plugin",
+    "brand": "INPHIC / 英菲克",
+    "is24g": true,
+    "supported_count": 4,
+    "class": "d",
+    "line": 173721,
+    "provider": "D"
+  },
+  {
+    "id": "incott-2.4g-plugin",
+    "brand": "Incott / 因科特",
+    "is24g": true,
+    "supported_count": 3,
+    "class": "F",
+    "line": 175394,
+    "provider": "e"
+  },
+  {
+    "id": "hyperx-2.4g-plugin",
+    "brand": "HyperX",
+    "is24g": true,
+    "supported_count": 6,
+    "class": "G",
+    "line": 177335,
+    "provider": "f"
+  },
+  {
+    "id": "hp-2.4g-plugin",
+    "brand": "HP/惠普",
+    "is24g": true,
+    "supported_count": 1,
+    "class": "H",
+    "line": 178186,
+    "provider": "g"
+  },
+  {
+    "id": "g-wolves-2.4g-plugin",
+    "brand": "G-Wolves / 游狼",
+    "is24g": true,
+    "supported_count": 2,
+    "class": "I",
+    "line": 179816,
+    "provider": "h"
+  },
+  {
+    "id": "glorious-2.4g-plugin",
+    "brand": "GLORIOUS",
+    "is24g": true,
+    "supported_count": 1,
+    "class": "K",
+    "line": 181097,
+    "provider": "j"
+  },
+  {
+    "id": "ganss-2.4g-plugin",
+    "brand": "GANSS / 高斯 / 迦斯",
+    "is24g": true,
+    "supported_count": 2,
+    "class": "L",
+    "line": 182558,
+    "provider": "k"
+  },
+  {
+    "id": "gamesir-2.4g-plugin",
+    "brand": "Gamesir / 盖世小鸡",
+    "is24g": true,
+    "supported_count": 5,
+    "class": "P",
+    "line": 186823,
+    "provider": null
+  },
+  {
+    "id": "fractal-2.4g-plugin",
+    "brand": "Fractal",
+    "is24g": true,
+    "supported_count": 1,
+    "class": "R",
+    "line": 188467,
+    "provider": "q"
+  },
+  {
+    "id": "flydigi-2.4g-plugin",
+    "brand": "Flydigi / 飞智",
+    "is24g": true,
+    "supported_count": 2,
+    "class": "S",
+    "line": 189870,
+    "provider": "r"
+  },
+  {
+    "id": "flesports-2.4g-plugin",
+    "brand": "FLEsports / 腹灵",
+    "is24g": true,
+    "supported_count": 1,
+    "class": "v",
+    "line": 192191,
+    "provider": "V"
+  },
+  {
+    "id": "finalmouse-2.4g-plugin",
+    "brand": "Finalmouse",
+    "is24g": true,
+    "supported_count": 1,
+    "class": "w",
+    "line": 193568,
+    "provider": "W"
+  },
+  {
+    "id": "eweadn-2.4g-plugin",
+    "brand": "EWEADN / 前行者",
+    "is24g": true,
+    "supported_count": 5,
+    "class": "Y",
+    "line": 196061,
+    "provider": "x"
+  },
+  {
+    "id": "epos-2.4g-plugin",
+    "brand": "EPOS",
+    "is24g": true,
+    "supported_count": 2,
+    "class": "E",
+    "line": 198657,
+    "provider": null
+  },
+  {
+    "id": "edifier-2.4g-plugin",
+    "brand": "EDIFIER / 漫步者",
+    "is24g": true,
+    "supported_count": 4,
+    "class": "F",
+    "line": 200184,
+    "provider": "e"
+  },
+  {
+    "id": "delux-2.4g-plugin",
+    "brand": "Delux / 多彩",
+    "is24g": true,
+    "supported_count": 4,
+    "class": "G",
+    "line": 203281,
+    "provider": "f"
+  },
+  {
+    "id": "darmoshark-2.4g-plugin",
+    "brand": "DarmoShark / 达摩鲨",
+    "is24g": true,
+    "supported_count": 3,
+    "class": "H",
+    "line": 205049,
+    "provider": "g"
+  },
+  {
+    "id": "dareu-2.4g-plugin",
+    "brand": "Dareu / 达尔优",
+    "is24g": true,
+    "supported_count": 4,
+    "class": "i",
+    "line": 206970,
+    "provider": "I"
+  },
+  {
+    "id": "corsair-2.4g-plugin",
+    "brand": "Corsair / 海盗船",
+    "is24g": true,
+    "supported_count": 1,
+    "class": "k",
+    "line": 208684,
+    "provider": "K"
+  },
+  {
+    "id": "coolermaster-2.4g-plugin",
+    "brand": "COOLER MASTER / 酷冷至尊",
+    "is24g": true,
+    "supported_count": 1,
+    "class": "l",
+    "line": 209738,
+    "provider": "L"
+  },
+  {
+    "id": "cherry-2.4g-plugin",
+    "brand": "Cherry",
+    "is24g": true,
+    "supported_count": 2,
+    "class": "m",
+    "line": 210989,
+    "provider": "M"
+  },
+  {
+    "id": "bose-bluetooth-plugin",
+    "brand": "BOSE Bluetooth",
+    "is24g": false,
+    "requires24g_addon": true,
+    "source": "Bose",
+    "requires_system_bt": true,
+    "supported_count": 1,
+    "class": "q",
+    "line": 212247,
+    "provider": null
+  },
+  {
+    "id": "bloody-2.4g-plugin",
+    "brand": "Bloody / 血手幽灵",
+    "is24g": true,
+    "supported_count": 1,
+    "class": "T",
+    "line": 213595,
+    "provider": "s"
+  },
+  {
+    "id": "8bitdo-2.4g-plugin",
+    "brand": "8BitDo / 八位堂",
+    "is24g": true,
+    "supported_count": 2,
+    "class": "u",
+    "line": 214398,
+    "provider": "U"
+  },
+  {
+    "id": "betop-2.4g-plugin",
+    "brand": "BETOP / 北通",
+    "is24g": true,
+    "supported_count": 1,
+    "class": "v",
+    "line": 215712,
+    "provider": "V"
+  },
+  {
+    "id": "aula-2.4g-plugin",
+    "brand": "AULA / 狼蛛",
+    "is24g": true,
+    "class": "Y",
+    "line": 219178,
+    "provider": "x"
+  },
+  {
+    "id": "audeze-2.4g-plugin",
+    "brand": "Audeze / 奥帝兹",
+    "is24g": true,
+    "supported_count": 1,
+    "class": "G",
+    "line": 220831,
+    "provider": "B"
+  },
+  {
+    "id": "atk-hid-plugin",
+    "brand": "ATK、VGN",
+    "is24g": true,
+    "supported_count": 63,
+    "class": "K",
+    "line": 225269,
+    "provider": "g"
+  },
+  {
+    "id": "antgamer-2.4g-plugin",
+    "brand": "ANTGAMER / 蚂蚁电竞",
+    "is24g": true,
+    "supported_count": 1,
+    "class": "L",
+    "line": 226614,
+    "provider": "k"
+  },
+  {
+    "id": "angrymiao-2.4g-plugin",
+    "brand": "AngryMiao / 怒喵",
+    "is24g": true,
+    "supported_count": 2,
+    "class": "M",
+    "line": 228265,
+    "provider": "l"
+  },
+  {
+    "id": "ajazz-2.4g-plugin",
+    "brand": "AJAZZ / 黑爵",
+    "is24g": true,
+    "supported_count": 3,
+    "class": "n",
+    "line": 230066,
+    "provider": "N"
+  },
+  {
+    "id": "acer-2.4g-plugin",
+    "brand": "Acer/宏碁",
+    "is24g": true,
+    "supported_count": 1,
+    "class": "R",
+    "line": 232111,
+    "provider": "O"
+  }
+]

@@ -52,6 +52,9 @@ namespace GameHub.Utils
         WlMouseHid,
 
         /// <summary>XInput 手柄电量（XInputGetBatteryInformation，公开 API；只有空/低/中/满档位）。</summary>
+        /// <summary>雷柏（Rapoo）私有 HID 协议：vendor 集合（usage page 0xFF00）被动推送电量。</summary>
+        RapooHid,
+
         Xinput,
 
         /// <summary>本次没读到，显示的是上一次的值。</summary>
@@ -615,6 +618,36 @@ namespace GameHub.Utils
                 });
             }
 
+            // 0) 雷柏（Rapoo）私有协议：vendor 集合（usage page 0xFF00）。
+            //    协议来自商店版 EasyBluetooth 的 RapooBatteryProviderPidSingle（本机 2026-10-24 实测通过）。
+            //    【重要】这个块必须排在其他 HID 读取器（尤其是通用 HID 标准电量）之前：
+            //    HID 输入报告只会投递给「最先打开」该集合的句柄，而且对这些句柄调
+            //    HidD_GetProductString 会让厂商通道罢工（实测：之后所有中断读全超时）。
+            foreach (var rapoo in RapooBatteryReader.ReadAll())
+            {
+                string name = rapoo.Name;
+                string normalized = NormalizeName(name);
+                if (normalized.Length == 0 || !knownNames.Add(normalized))
+                    continue;
+
+                bool rapooHasBattery = rapoo.Percent.HasValue;
+
+                result.Add(new WirelessBatteryDevice
+                {
+                    Id = rapoo.Id,
+                    Name = name,
+                    Address = string.Empty,
+                    IsBluetooth = false,
+                    Kind = WirelessDeviceKind.Input,
+                    IsConnected = rapooHasBattery,
+                    BatteryPercent = rapoo.Percent,
+                    IsCharging = false,
+                    Source = rapooHasBattery ? BatterySource.RapooHid : BatterySource.None,
+                    Detail = rapoo.Note,
+                    BatteryReadAt = rapooHasBattery ? DateTimeOffset.Now : (DateTimeOffset?)null
+                });
+            }
+
             // 4) 雷蛇私有 HID 协议：这类接收器**完全不向 Windows 上报电量**
             //    （实测 DeathAdder V3 Pro 接收器 VID_1532/PID_00B7 没有
             //     DEVPKEY_Device_BatteryLevel，系统电源接口也枚举不到），
@@ -725,7 +758,7 @@ namespace GameHub.Utils
                 });
             }
 
-            // 8) XInput 手柄（有线 / 2.4G XInput 接收器；含致动等第三方 XInput 手柄）。
+            // 9) XInput 手柄（有线 / 2.4G XInput 接收器；含致动等第三方 XInput 手柄）。
             //    蓝牙手柄不走这条通道，由上面的 BLE/HID 通道负责。
             //    XInput 只报「空/低/中/满」档位，换算成近似百分比；
             //    有线连接无百分比，只标记充电中。

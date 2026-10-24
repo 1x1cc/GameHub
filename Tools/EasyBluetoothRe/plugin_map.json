@@ -1,0 +1,514 @@
+[
+  {
+    "line": 105310,
+    "cls": "V",
+    "ns": "H",
+    "brand": "Xinmeng",
+    "id_method": "aAx",
+    "provider": "u"
+  },
+  {
+    "line": 106964,
+    "cls": "W",
+    "ns": "H",
+    "brand": "Xiaomi",
+    "id_method": "aAP",
+    "provider": "v"
+  },
+  {
+    "line": 108520,
+    "cls": "X",
+    "ns": "H",
+    "brand": "WanlingJingji",
+    "id_method": "aAc",
+    "provider": "w"
+  },
+  {
+    "line": 109697,
+    "cls": "Y",
+    "ns": "H",
+    "brand": "Vaxee",
+    "id_method": "aAh",
+    "provider": "x"
+  },
+  {
+    "line": 110935,
+    "cls": "Z",
+    "ns": "H",
+    "brand": "Valkyrie",
+    "id_method": "aAe",
+    "provider": "y"
+  },
+  {
+    "line": 112260,
+    "cls": "b",
+    "ns": "h",
+    "brand": "TurtleBeach",
+    "id_method": "aAt",
+    "provider": "B"
+  },
+  {
+    "line": 113662,
+    "cls": "D",
+    "ns": "h",
+    "brand": "Togar",
+    "id_method": "aAA",
+    "provider": "c"
+  },
+  {
+    "line": 115717,
+    "cls": "e",
+    "ns": "h",
+    "brand": "SteelSeries",
+    "id_method": "zY",
+    "provider": "E"
+  },
+  {
+    "line": 116859,
+    "cls": "f",
+    "ns": "h",
+    "brand": "Steam",
+    "id_method": "aAW",
+    "provider": "F"
+  },
+  {
+    "line": 121094,
+    "cls": "K",
+    "ns": "h",
+    "brand": "Sony",
+    "id_method": "aAi",
+    "provider": "G"
+  },
+  {
+    "line": 122735,
+    "cls": "m",
+    "ns": "h",
+    "brand": "Scyrox",
+    "id_method": "aAr",
+    "provider": "M"
+  },
+  {
+    "line": 124003,
+    "cls": "n",
+    "ns": "h",
+    "brand": "Royalaxe",
+    "id_method": "aAO",
+    "provider": "N"
+  },
+  {
+    "line": 127033,
+    "cls": "o",
+    "ns": "h",
+    "brand": "Rog",
+    "id_method": "zU",
+    "provider": "O"
+  },
+  {
+    "line": 128886,
+    "cls": "p",
+    "ns": "h",
+    "brand": "Roccat",
+    "id_method": "aAu",
+    "provider": "P"
+  },
+  {
+    "line": 130356,
+    "cls": "q",
+    "ns": "h",
+    "brand": "Redragon",
+    "id_method": "aAa",
+    "provider": "Q"
+  },
+  {
+    "line": 136415,
+    "cls": "w",
+    "ns": "h",
+    "brand": "Razer",
+    "id_method": "zw",
+    "provider": "t"
+  },
+  {
+    "line": 143253,
+    "cls": "p",
+    "ns": "I",
+    "brand": "Rawm",
+    "id_method": "aAI",
+    "provider": "P"
+  },
+  {
+    "line": 145246,
+    "cls": "R",
+    "ns": "I",
+    "brand": "Rapoo",
+    "id_method": "zX",
+    "provider": "q"
+  },
+  {
+    "line": 146498,
+    "cls": "S",
+    "ns": "I",
+    "brand": "Pulsar",
+    "id_method": "aAC",
+    "provider": "r"
+  },
+  {
+    "line": 148382,
+    "cls": "U",
+    "ns": "I",
+    "brand": "Pmo",
+    "id_method": "aAb",
+    "provider": "t"
+  },
+  {
+    "line": 149595,
+    "cls": "V",
+    "ns": "I",
+    "brand": "Ninjutso",
+    "id_method": "zy",
+    "provider": "u"
+  },
+  {
+    "line": 149873,
+    "cls": "W",
+    "ns": "I",
+    "brand": "Mision",
+    "id_method": "aAy",
+    "provider": "v"
+  },
+  {
+    "line": 154208,
+    "cls": "x",
+    "ns": "I",
+    "brand": "Mchose",
+    "id_method": "zx",
+    "provider": "X"
+  },
+  {
+    "line": 156261,
+    "cls": "y",
+    "ns": "I",
+    "brand": "Maono",
+    "id_method": "aAn",
+    "provider": "Y"
+  },
+  {
+    "line": 157937,
+    "cls": "z",
+    "ns": "I",
+    "brand": "Lunafury",
+    "id_method": "aAE",
+    "provider": "Z"
+  },
+  {
+    "line": 160449,
+    "cls": "c",
+    "ns": "i",
+    "brand": "Logitech",
+    "id_method": "zu",
+    "provider": "C"
+  },
+  {
+    "line": 166076,
+    "cls": "w",
+    "ns": "i",
+    "brand": "Leobog",
+    "id_method": "aAQ",
+    "provider": "W"
+  },
+  {
+    "line": 167746,
+    "cls": "y",
+    "ns": "i",
+    "brand": "Lenovo",
+    "id_method": "aAk",
+    "provider": "x"
+  },
+  {
+    "line": 168525,
+    "cls": "z",
+    "ns": "i",
+    "brand": "Langtu",
+    "id_method": "ajd",
+    "provider": "Z"
+  },
+  {
+    "line": 170374,
+    "cls": "a",
+    "ns": "J",
+    "brand": "Lamzu",
+    "id_method": "aAR",
+    "provider": "A"
+  },
+  {
+    "line": 171459,
+    "cls": "b",
+    "ns": "J",
+    "brand": "JingZao",
+    "id_method": "aAJ",
+    "provider": "B"
+  },
+  {
+    "line": 172344,
+    "cls": "c",
+    "ns": "J",
+    "brand": "Jbl",
+    "id_method": "aAj",
+    "provider": "C"
+  },
+  {
+    "line": 173721,
+    "cls": "d",
+    "ns": "J",
+    "brand": "Inphic",
+    "id_method": "aAK",
+    "provider": "D"
+  },
+  {
+    "line": 175394,
+    "cls": "F",
+    "ns": "J",
+    "brand": "Incott",
+    "id_method": "aAl",
+    "provider": "e"
+  },
+  {
+    "line": 177335,
+    "cls": "G",
+    "ns": "J",
+    "brand": "HyperX",
+    "id_method": "zv",
+    "provider": "f"
+  },
+  {
+    "line": 178186,
+    "cls": "H",
+    "ns": "J",
+    "brand": "Hp",
+    "id_method": "aAB",
+    "provider": "g"
+  },
+  {
+    "line": 179816,
+    "cls": "I",
+    "ns": "J",
+    "brand": "GWolves",
+    "id_method": "aAD",
+    "provider": "h"
+  },
+  {
+    "line": 181097,
+    "cls": "K",
+    "ns": "J",
+    "brand": "Glorious",
+    "id_method": "aAd",
+    "provider": "j"
+  },
+  {
+    "line": 182558,
+    "cls": "L",
+    "ns": "J",
+    "brand": "Ganss",
+    "id_method": "aAV",
+    "provider": "k"
+  },
+  {
+    "line": 186823,
+    "cls": "P",
+    "ns": "J",
+    "brand": "Gamesir",
+    "id_method": "aAM",
+    "provider": null
+  },
+  {
+    "line": 188467,
+    "cls": "R",
+    "ns": "J",
+    "brand": "Fractal",
+    "id_method": "zW",
+    "provider": "q"
+  },
+  {
+    "line": 189870,
+    "cls": "S",
+    "ns": "J",
+    "brand": "Flydigi",
+    "id_method": "aAo",
+    "provider": "r"
+  },
+  {
+    "line": 192191,
+    "cls": "v",
+    "ns": "J",
+    "brand": "Flesports",
+    "id_method": "aAq",
+    "provider": "V"
+  },
+  {
+    "line": 193568,
+    "cls": "w",
+    "ns": "J",
+    "brand": "Finalmouse",
+    "id_method": "aAN",
+    "provider": "W"
+  },
+  {
+    "line": 196061,
+    "cls": "Y",
+    "ns": "J",
+    "brand": "Eweadn",
+    "id_method": "aAF",
+    "provider": "x"
+  },
+  {
+    "line": 198657,
+    "cls": "E",
+    "ns": "j",
+    "brand": "Epos",
+    "id_method": "aAL",
+    "provider": null
+  },
+  {
+    "line": 200184,
+    "cls": "F",
+    "ns": "j",
+    "brand": "Edifier",
+    "id_method": "zz",
+    "provider": "e"
+  },
+  {
+    "line": 203281,
+    "cls": "G",
+    "ns": "j",
+    "brand": "Delux",
+    "id_method": "aAm",
+    "provider": "f"
+  },
+  {
+    "line": 205049,
+    "cls": "H",
+    "ns": "j",
+    "brand": "DarmoShark",
+    "id_method": "aAg",
+    "provider": "g"
+  },
+  {
+    "line": 206970,
+    "cls": "i",
+    "ns": "j",
+    "brand": "Dareu",
+    "id_method": "aAH",
+    "provider": "I"
+  },
+  {
+    "line": 208684,
+    "cls": "k",
+    "ns": "j",
+    "brand": "Corsair",
+    "id_method": "aAw",
+    "provider": "K"
+  },
+  {
+    "line": 209738,
+    "cls": "l",
+    "ns": "j",
+    "brand": "CoolerMaster",
+    "id_method": "aAs",
+    "provider": "L"
+  },
+  {
+    "line": 210989,
+    "cls": "m",
+    "ns": "j",
+    "brand": "Cherry",
+    "id_method": "zZ",
+    "provider": "M"
+  },
+  {
+    "line": 212247,
+    "cls": "q",
+    "ns": "j",
+    "brand": "Bose",
+    "id_method": "bAb",
+    "provider": null
+  },
+  {
+    "line": 213595,
+    "cls": "T",
+    "ns": "j",
+    "brand": "Bloody",
+    "id_method": "aAX",
+    "provider": "s"
+  },
+  {
+    "line": 214398,
+    "cls": "u",
+    "ns": "j",
+    "brand": "BitDo",
+    "id_method": "aAv",
+    "provider": "U"
+  },
+  {
+    "line": 215712,
+    "cls": "v",
+    "ns": "j",
+    "brand": "Betop",
+    "id_method": "aAU",
+    "provider": "V"
+  },
+  {
+    "line": 219178,
+    "cls": "Y",
+    "ns": "j",
+    "brand": "Aula",
+    "id_method": "aAG",
+    "provider": "x"
+  },
+  {
+    "line": 220831,
+    "cls": "G",
+    "ns": "K",
+    "brand": "Audeze",
+    "id_method": "aAT",
+    "provider": "B"
+  },
+  {
+    "line": 225269,
+    "cls": "K",
+    "ns": "K",
+    "brand": "Atk",
+    "id_method": "zV",
+    "provider": "g"
+  },
+  {
+    "line": 226614,
+    "cls": "L",
+    "ns": "K",
+    "brand": "Antgamer",
+    "id_method": "aAS",
+    "provider": "k"
+  },
+  {
+    "line": 228265,
+    "cls": "M",
+    "ns": "K",
+    "brand": "AngryMiao",
+    "id_method": "aAp",
+    "provider": "l"
+  },
+  {
+    "line": 230066,
+    "cls": "n",
+    "ns": "K",
+    "brand": "Ajazz",
+    "id_method": "aAf",
+    "provider": "N"
+  },
+  {
+    "line": 232111,
+    "cls": "R",
+    "ns": "K",
+    "brand": "Acer",
+    "id_method": "aAY",
+    "provider": "O"
+  }
+]
