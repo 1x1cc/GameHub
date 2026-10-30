@@ -9,23 +9,30 @@
 
 | 版本 | 文件 | 大小 | 说明 |
 |------|------|------|------|
-| **自包含版（推荐）** | `GameHub-v1.0.5-win-x64.zip` | 73.6 MB | 免安装 .NET，解压后双击 `GameHub.exe` 即用（含 Dronesee 录制模块） |
-| 精简版 | `GameHub-v1.0.5-win-x64-lite.zip` | 7.2 MB | 需先安装 [.NET 8 桌面运行时](https://dotnet.microsoft.com/download/dotnet/8.0) |
+| **完整版（推荐）** | `GameHub-v1.0.5-win-x64-full.zip` | 147.7 MB | 自包含 .NET + **已内置 FFmpeg**，解压后双击 `GameHub.exe` 即可录制，开箱即用 |
+| 自包含版 | `GameHub-v1.0.5-win-x64.zip` | 73.6 MB | 免安装 .NET，需自行准备 FFmpeg（放到 `GameHub.exe` 同目录） |
+| 精简版 | `GameHub-v1.0.5-win-x64-lite.zip` | 7.2 MB | 需先安装 [.NET 8 桌面运行时](https://dotnet.microsoft.com/download/dotnet/8.0)，需自行准备 FFmpeg |
 
-> **注意：** v1.0.5 新增 Dronesee 录制模块，需要 FFmpeg 支持。详见下方「FFmpeg 安装说明」。
+> **注意：** v1.0.5 新增 Dronesee 录制模块，需要 FFmpeg 支持。**完整版已内置 FFmpeg（ffmpeg.exe + ffprobe.exe）**；自包含版 / 精简版请见下方「FFmpeg 安装说明」。
 
 ### 国内下载加速
 
-直连 GitHub 较慢时，在下载链接前加镜像前缀即可（实测可用）。当前最新版（v1.0.5）的现成镜像链接：
+直连 GitHub 较慢时，在下载链接前加镜像前缀即可（实测可用）。当前最新版（v1.0.5）三个包的现成镜像链接：
 
 ```
-# 自包含版（推荐）
+# 完整版（推荐 · 内置 FFmpeg）
+https://gh-proxy.com/https://github.com/1x1cc/GameHub/releases/download/v1.0.5/GameHub-v1.0.5-win-x64-full.zip
+https://ghfast.top/https://github.com/1x1cc/GameHub/releases/download/v1.0.5/GameHub-v1.0.5-win-x64-full.zip
+https://ghproxy.net/https://github.com/1x1cc/GameHub/releases/download/v1.0.5/GameHub-v1.0.5-win-x64-full.zip
+https://hk.gh-proxy.com/https://github.com/1x1cc/GameHub/releases/download/v1.0.5/GameHub-v1.0.5-win-x64-full.zip
+
+# 自包含版（需自备 FFmpeg）
 https://gh-proxy.com/https://github.com/1x1cc/GameHub/releases/download/v1.0.5/GameHub-v1.0.5-win-x64.zip
 https://ghfast.top/https://github.com/1x1cc/GameHub/releases/download/v1.0.5/GameHub-v1.0.5-win-x64.zip
 https://ghproxy.net/https://github.com/1x1cc/GameHub/releases/download/v1.0.5/GameHub-v1.0.5-win-x64.zip
 https://hk.gh-proxy.com/https://github.com/1x1cc/GameHub/releases/download/v1.0.5/GameHub-v1.0.5-win-x64.zip
 
-# 精简版（需 .NET 8 桌面运行时）
+# 精简版（需 .NET 8 桌面运行时 + 自备 FFmpeg）
 https://gh-proxy.com/https://github.com/1x1cc/GameHub/releases/download/v1.0.5/GameHub-v1.0.5-win-x64-lite.zip
 https://ghfast.top/https://github.com/1x1cc/GameHub/releases/download/v1.0.5/GameHub-v1.0.5-win-x64-lite.zip
 https://ghproxy.net/https://github.com/1x1cc/GameHub/releases/download/v1.0.5/GameHub-v1.0.5-win-x64-lite.zip
@@ -43,7 +50,7 @@ https://hk.gh-proxy.com/       + https://github.com/1x1cc/GameHub/releases/downl
 
 > 镜像为第三方公益服务，可用性可能变化；如失效请直接用原始 GitHub 链接。
 >
-> 2026-10-30 实测（v1.0.5 发布包）：`gh-proxy.com` / `ghfast.top` / `ghproxy.net` / `hk.gh-proxy.com` 四个前缀对**自包含版与精简版均返回 200**，文件大小与 Release 一致（`ghproxy.net` 此前返回 502，现已恢复）。
+> 2026-10-30 实测（v1.0.5 发布包）：`gh-proxy.com` / `ghfast.top` / `ghproxy.net` / `hk.gh-proxy.com` 四个前缀对**完整版 / 自包含版 / 精简版均返回 200**，`Content-Length` 与 Release 附件字节数完全一致（完整版 154,826,363 / 自包含版 77,180,901 / 精简版 7,520,075）。`ghproxy.net` 此前返回 502，现已恢复；`ghfast.top` 偶发首次连接失败，重试即可。
 
 ## 覆盖安装 / 更新（重复安装新版不报错）
 
@@ -220,6 +227,20 @@ powershell -ExecutionPolicy Bypass -File install.ps1 -InstallDir "D:\Tools\GameH
 - 以普通用户权限运行，**不提权**
 
 因此与主流反作弊（EAC / Vanguard / ACE 等）兼容，可在游戏后台运行。
+
+### FFmpeg 安装说明
+
+Dronesee 的「录制」功能依赖 FFmpeg（「即时重放」不需要）。
+
+- **完整版**（`GameHub-v1.0.5-win-x64-full.zip`）**已内置** `ffmpeg.exe` 与 `ffprobe.exe`，解压后直接可用，无需任何额外操作。
+- **自包含版 / 精简版**需自行准备：
+  1. 打开 <https://www.gyan.dev/ffmpeg/builds/>
+  2. 下载 `ffmpeg-release-essentials.zip`
+  3. 解压，把 `bin\ffmpeg.exe` 与 `bin\ffprobe.exe` 复制到 `GameHub.exe` 同目录
+
+> 随包内置的是 FFmpeg 9.0.2 essentials 构建，含 `h264_nvenc` / `h264_qsv` / `h264_amf` / `h264_vaapi` / `libx264` / `aac` 等编码器。
+>
+> 程序会依次在 `GameHub.exe` 同目录、同目录下的 `publish`、向上 4 层目录及其一级子目录、`%LOCALAPPDATA%\GameHub` 等处查找 `ffmpeg.exe`。
 
 ### 与游戏反作弊的兼容性
 
