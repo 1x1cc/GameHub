@@ -9,27 +9,27 @@
 
 | 版本 | 文件 | 大小 | 说明 |
 |------|------|------|------|
-| **自包含版（推荐）** | `GameHub-v1.0.5-win-x64.zip` | 72 MB | 免安装 .NET，解压后双击 `GameHub.exe` 即用（含 Dronesee 录制模块） |
-| 精简版 | `GameHub-v1.0.5-win-x64-lite.zip` | 6.7 MB | 需先安装 [.NET 8 桌面运行时](https://dotnet.microsoft.com/download/dotnet/8.0) |
+| **自包含版（推荐）** | `GameHub-v1.0.5-win-x64.zip` | 73.6 MB | 免安装 .NET，解压后双击 `GameHub.exe` 即用（含 Dronesee 录制模块） |
+| 精简版 | `GameHub-v1.0.5-win-x64-lite.zip` | 7.2 MB | 需先安装 [.NET 8 桌面运行时](https://dotnet.microsoft.com/download/dotnet/8.0) |
 
 > **注意：** v1.0.5 新增 Dronesee 录制模块，需要 FFmpeg 支持。详见下方「FFmpeg 安装说明」。
 
 ### 国内下载加速
 
-直连 GitHub 较慢时，在下载链接前加镜像前缀即可（实测可用）。当前最新版（v1.0.2）的现成镜像链接：
+直连 GitHub 较慢时，在下载链接前加镜像前缀即可（实测可用）。当前最新版（v1.0.5）的现成镜像链接：
 
 ```
 # 自包含版（推荐）
-https://gh-proxy.com/https://github.com/1x1cc/GameHub/releases/download/v1.0.2/GameHub-v1.0.2-win-x64.zip
-https://ghfast.top/https://github.com/1x1cc/GameHub/releases/download/v1.0.2/GameHub-v1.0.2-win-x64.zip
-https://ghproxy.net/https://github.com/1x1cc/GameHub/releases/download/v1.0.2/GameHub-v1.0.2-win-x64.zip
-https://hk.gh-proxy.com/https://github.com/1x1cc/GameHub/releases/download/v1.0.2/GameHub-v1.0.2-win-x64.zip
+https://gh-proxy.com/https://github.com/1x1cc/GameHub/releases/download/v1.0.5/GameHub-v1.0.5-win-x64.zip
+https://ghfast.top/https://github.com/1x1cc/GameHub/releases/download/v1.0.5/GameHub-v1.0.5-win-x64.zip
+https://ghproxy.net/https://github.com/1x1cc/GameHub/releases/download/v1.0.5/GameHub-v1.0.5-win-x64.zip
+https://hk.gh-proxy.com/https://github.com/1x1cc/GameHub/releases/download/v1.0.5/GameHub-v1.0.5-win-x64.zip
 
 # 精简版（需 .NET 8 桌面运行时）
-https://gh-proxy.com/https://github.com/1x1cc/GameHub/releases/download/v1.0.2/GameHub-v1.0.2-win-x64-lite.zip
-https://ghfast.top/https://github.com/1x1cc/GameHub/releases/download/v1.0.2/GameHub-v1.0.2-win-x64-lite.zip
-https://ghproxy.net/https://github.com/1x1cc/GameHub/releases/download/v1.0.2/GameHub-v1.0.2-win-x64-lite.zip
-https://hk.gh-proxy.com/https://github.com/1x1cc/GameHub/releases/download/v1.0.2/GameHub-v1.0.2-win-x64-lite.zip
+https://gh-proxy.com/https://github.com/1x1cc/GameHub/releases/download/v1.0.5/GameHub-v1.0.5-win-x64-lite.zip
+https://ghfast.top/https://github.com/1x1cc/GameHub/releases/download/v1.0.5/GameHub-v1.0.5-win-x64-lite.zip
+https://ghproxy.net/https://github.com/1x1cc/GameHub/releases/download/v1.0.5/GameHub-v1.0.5-win-x64-lite.zip
+https://hk.gh-proxy.com/https://github.com/1x1cc/GameHub/releases/download/v1.0.5/GameHub-v1.0.5-win-x64-lite.zip
 ```
 
 镜像前缀与 GitHub 原始路径的对应关系：
@@ -43,7 +43,7 @@ https://hk.gh-proxy.com/       + https://github.com/1x1cc/GameHub/releases/downl
 
 > 镜像为第三方公益服务，可用性可能变化；如失效请直接用原始 GitHub 链接。
 >
-> 2026-10-19 实测（v1.0.2 发布包）：`gh-proxy.com` / `ghfast.top` / `hk.gh-proxy.com` 均返回 200 且文件大小正确；`ghproxy.net` 当前返回 **502 Bad Gateway**，暂不可用。
+> 2026-10-30 实测（v1.0.5 发布包）：`gh-proxy.com` / `ghfast.top` / `ghproxy.net` / `hk.gh-proxy.com` 四个前缀对**自包含版与精简版均返回 200**，文件大小与 Release 一致（`ghproxy.net` 此前返回 502，现已恢复）。
 
 ## 覆盖安装 / 更新（重复安装新版不报错）
 
@@ -352,6 +352,23 @@ public class MyModule : IModule
 - **EasyBluetooth 模块**：灵感来源于 [muedsa/BluetoothLEBatteryMonitor](https://github.com/muedsa/BluetoothLEBatteryMonitor)（MIT），本模块完全自研实现
 
 ## 更新日志
+
+### v1.0.5（2026-10-28）
+
+- **新增 Dronesee 模块（主界面第四个卡片）**：屏幕录制与即时重放
+  - 录制：FFmpeg + 硬件编码（NVENC / QSV / VAAPI·AMF，libx264 软件回退），热键 `Ctrl+Alt+R` 开 / 关
+  - 即时重放：GDI 捕获 + 内存 Ring Buffer（5 秒 – 30 分钟，128 MB – 4096 MB），热键 `Ctrl+Alt+P` 保存片段，可反复按
+  - 音频：WASAPI 采集，可选麦克风，采样率 / 声道 / 码率可配；封装格式 MP4 / MKV
+  - 录制参数（分辨率 / 帧率 / 码率 / 编码器 / 关键帧间隔）与即时重放参数彼此独立
+  - 内存占用监控：Ring Buffer 占用超阈值时提示调整设置
+- 设置项独立为 `DroneseeSettings`，越界参数自动收敛到合法范围
+- 默认保存目录改为程序目录下的 `GameHub Recordings`；程序目录不可写时回退 `%LOCALAPPDATA%`
+- 统一版本号至 v1.0.5（程序集版本 / 底部状态栏）
+
+### v1.0.4（2026-10-28）
+
+- Dronesee 模块初始版本：基础录制与即时重放
+- 修复热键 toggle 逻辑、即时重放分辨率 / 码率设置缺失、滑块实时更新问题
 
 ### v1.0.3（2026-10-20）
 
