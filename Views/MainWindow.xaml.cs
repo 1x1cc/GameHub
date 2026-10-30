@@ -10,6 +10,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
 using GameHub.Modules.AudioPlaybackConnector;
+using GameHub.Modules.Dronesee;
 using GameHub.Modules.SoundSwitch;
 using GameHub.Utils;
 using GameHub.ViewModels;
@@ -59,6 +60,9 @@ namespace GameHub.Views
                 RegisterHotkeys();
                 NotificationManager.Initialize();
                 InitializeTrayIcon();
+
+                // 若设置里开着即时重放，启动时就拉起后台缓冲
+                Modules.Dronesee.DroneseeModule.ApplyReplayBufferState();
                 await RefreshAllAsync();
                 LogMessage("主窗口加载完成");
 
@@ -109,7 +113,10 @@ namespace GameHub.Views
 
                 // 第三个卡片：无线设备电量（EasyBluetooth）。
                 // UniformGrid 两列布局下它会自然排在第一行左侧卡片的下面。
-                new Modules.EasyBluetooth.EasyBluetoothModule()
+                new Modules.EasyBluetooth.EasyBluetoothModule(),
+
+                // 第四个卡片：游戏视频录制与即时重放（Dronesee）。
+                new Modules.Dronesee.DroneseeModule()
             };
 
             _moduleViewModels.Clear();
@@ -258,6 +265,24 @@ namespace GameHub.Views
                     ToggleBluetoothAudioPlayback), out string btError);
                 if (!ok)
                     LogMessage($"蓝牙音频暂停热键注册失败：{_settings.BluetoothAudioPauseHotkey}（{btError}）");
+            }
+
+            // Dronesee 热键：录制
+            if (_settings.Dronesee.RecordHotkeyEnabled)
+            {
+                bool ok = _hotkeyManager.Register(_settings.Dronesee.RecordHotkey, WrapCallback(
+                    ToggleDroneseeRecording), out string recordError);
+                if (!ok)
+                    LogMessage($"Dronesee 录制热键注册失败：{_settings.Dronesee.RecordHotkey}（{recordError}）");
+            }
+
+            // Dronesee 热键：即时重放
+            if (_settings.Dronesee.ReplayHotkeyEnabled)
+            {
+                bool ok = _hotkeyManager.Register(_settings.Dronesee.ReplayHotkey, WrapCallback(
+                    SaveDroneseeReplayClip), out string replayError);
+                if (!ok)
+                    LogMessage($"Dronesee 即时重放热键注册失败：{_settings.Dronesee.ReplayHotkey}（{replayError}）");
             }
         }
 
@@ -424,6 +449,90 @@ namespace GameHub.Views
             catch (Exception ex)
             {
                 LogMessage($"蓝牙音频切换异常：{ex.GetType().Name}: {ex.Message}");
+            }
+        }
+
+        // ---------- Dronesee 热键 ----------
+
+        /// <summary>切换 Dronesee 录制状态（热键触发：开一次 / 关一次，不是功能开关）。</summary>
+        private void ToggleDroneseeRecording()
+        {
+            try
+            {
+                var settings = SettingsStore.Load().Dronesee;
+
+                // 功能总开关（设置里的滑块）关闭时，热键不生效，并明确告知用户
+                if (!settings.RecordingEnabled)
+                {
+                    NotificationManager.ShowInfo("Dronesee",
+                        "录制未开启：请先在 Dronesee 设置里打开「录制」滑块");
+                    return;
+                }
+
+                var engine = DroneseeModule.GetOrCreateEngine();
+                if (engine == null)
+                {
+                    NotificationManager.ShowInfo("Dronesee", "录制引擎未就绪");
+                    return;
+                }
+
+                bool wasRecording = engine.IsRecording;
+
+                // 一次录制动作：第一次按下开始录制，第二次按下结束录制
+                engine.ToggleRecording();
+
+                if (wasRecording)
+                {
+                    NotificationManager.ShowInfo("Dronesee", "录制已停止");
+                }
+                else if (!engine.IsRecording)
+                {
+                    NotificationManager.ShowInfo("Dronesee",
+                        "录制未能启动：请检查 FFmpeg 是否可用、保存路径是否可写（详见日志）");
+                }
+            }
+            catch (Exception ex)
+            {
+                LogMessage($"Dronesee 录制热键异常：{ex.GetType().Name}: {ex.Message}");
+                NotificationManager.ShowInfo("Dronesee", "录制操作失败");
+            }
+        }
+
+        /// <summary>
+        /// 即时重放热键（热键触发）：保存“一次”回放录像。
+        /// 不是打开/关闭即时重放功能——功能由设置里的滑块控制，
+        /// 打开后后台持续缓存，每次按热键就存一份片段，可以反复按。
+        /// </summary>
+        private void SaveDroneseeReplayClip()
+        {
+            try
+            {
+                var settings = SettingsStore.Load().Dronesee;
+
+                if (!settings.InstantReplayEnabled)
+                {
+                    NotificationManager.ShowInfo("Dronesee",
+                        "即时重放未开启：请先在 Dronesee 设置里打开「即时重放」滑块");
+                    return;
+                }
+
+                var engine = DroneseeModule.GetOrCreateEngine();
+                if (engine == null)
+                {
+                    NotificationManager.ShowInfo("Dronesee", "重放引擎未就绪");
+                    return;
+                }
+
+                if (!engine.SaveReplayClip())
+                {
+                    NotificationManager.ShowInfo("Dronesee",
+                        "本次未能保存回放（缓冲未就绪或合成失败，详见日志）");
+                }
+            }
+            catch (Exception ex)
+            {
+                LogMessage($"Dronesee 重放热键异常：{ex.GetType().Name}: {ex.Message}");
+                NotificationManager.ShowInfo("Dronesee", "重放操作失败");
             }
         }
 
@@ -607,6 +716,9 @@ namespace GameHub.Views
             // 退出时取消蓝牙音频静音（避免下次启动/重连后没有声音）
             BluetoothAudioService.RestoreAudioOnExit();
             
+            // 清理 Dronesee 录制引擎（统一由模块持有）
+            DroneseeModule.DisposeEngine();
+
             // 清理通知管理器
             NotificationManager.Cleanup();
 

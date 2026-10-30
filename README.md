@@ -9,8 +9,10 @@
 
 | 版本 | 文件 | 大小 | 说明 |
 |------|------|------|------|
-| **自包含版（推荐）** | `GameHub-v1.0.2-win-x64.zip` | 69 MB | 免安装 .NET，解压后双击 `GameHub.exe` 即用 |
-| 精简版 | `GameHub-v1.0.2-win-x64-lite.zip` | 6.7 MB | 需先安装 [.NET 8 桌面运行时](https://dotnet.microsoft.com/download/dotnet/8.0) |
+| **自包含版（推荐）** | `GameHub-v1.0.5-win-x64.zip` | 72 MB | 免安装 .NET，解压后双击 `GameHub.exe` 即用（含 Dronesee 录制模块） |
+| 精简版 | `GameHub-v1.0.5-win-x64-lite.zip` | 6.7 MB | 需先安装 [.NET 8 桌面运行时](https://dotnet.microsoft.com/download/dotnet/8.0) |
+
+> **注意：** v1.0.5 新增 Dronesee 录制模块，需要 FFmpeg 支持。详见下方「FFmpeg 安装说明」。
 
 ### 国内下载加速
 
@@ -156,6 +158,69 @@ powershell -ExecutionPolicy Bypass -File install.ps1 -InstallDir "D:\Tools\GameH
 
 **灵感来源：** [muedsa/BluetoothLEBatteryMonitor](https://github.com/muedsa/BluetoothLEBatteryMonitor)（MIT），本模块完全自研实现。
 
+#### 4. Dronesee（游戏视频录制与即时重放）
+
+**功能：**
+
+- ✅ 屏幕录制（FFmpeg + 硬件编码：Nvidia NVENC / Intel QSV / AMD VAAPI/AMF）
+- ✅ 即时重放（Ring Buffer 内存缓存，最大支持 30 分钟）
+- ✅ 热键控制（录制 / 即时重放，全局生效）
+- ✅ 可选麦克风录制
+- ✅ 分辨率、帧率、码率、关键帧间隔、音频参数可自定义
+- ✅ 内存占用监控与警告（占用过大时提示用户调整设置）
+- ✅ 封装格式可选（MP4 / MKV）
+
+**默认热键：**
+
+| 热键 | 功能 |
+|------|------|
+| `Ctrl+Alt+R` | 开始/停止录制 |
+| `Ctrl+Alt+P` | 开始/停止即时重放录制 |
+
+**录制设置（卡片内可配置）：**
+
+| 参数 | 默认值 | 说明 |
+|------|--------|------|
+| 保存路径 | `%USERPROFILE%\Videos\GameHub Recordings` | 可自定义，带「打开文件夹」按钮 |
+| 麦克风 | 关闭 | 可选开启麦克风录制 |
+| 分辨率 | 1920×1080 | 720p / 1080p / 1440p / 4K / 自定义 |
+| 帧率 | 30 FPS | 30 / 60 / 120 / 144 / 240 |
+| 码率 | 2500 kbps | 1000 / 2500 / 5000 / 10000 / 自定义 |
+| 编码器 | 自动检测 | NVENC / QSV / VAAPI / AMF / libx264 |
+| 封装格式 | MP4 | MP4 / MKV |
+| 关键帧间隔 | 2 秒 | 1-60 秒 |
+| 音频采样率 | 44100 Hz | 44100 / 48000 / 96000 |
+| 音频声道 | 立体声 (2) | 单声道 / 立体声 |
+| 音频码率 | 128 kbps | 64 / 128 / 192 / 320 |
+
+**即时重放设置（卡片内可配置）：**
+
+| 参数 | 默认值 | 说明 |
+|------|--------|------|
+| 最大时长 | 30 秒 | 5 秒 - 30 分钟（1800 秒） |
+| 内存缓存 | 512 MB | 64 - 4096 MB |
+| 重放帧率 | 30 FPS | 30 / 60 / 120 |
+
+**实现方式：**
+
+- **录制引擎：** 使用 FFmpeg 命令行进行屏幕捕获（`d3d11grab`）和编码，支持多种硬件编码器：
+  - `h264_nvenc` — Nvidia 显卡（GeForce / Quadro / Tesla）
+  - `h264_qsv` — Intel 核显/独显（Quick Sync Video）
+  - `h264_vaapi` — AMD 开源驱动 / Intel 开源驱动
+  - `h264_amf` — AMD 闭源驱动（AMF）
+  - `libx264` — 软件编码（回退方案）
+- **即时重放：** 使用 GDI 捕获屏幕帧，压缩为 JPEG 后存入内存 Ring Buffer，重放时通过 WPF Window 播放。
+- **内存监控：** 实时监测 Ring Buffer 内存占用，超过 80% 限制时弹出警告提示。
+
+**与游戏反作弊的兼容性：**
+
+- 录制使用 `d3d11grab`（Direct3D 11 屏幕捕获），**不注入游戏进程**
+- 即时重放使用 GDI `CopyFromScreen`，**只读屏幕像素，不修改任何进程**
+- 热键使用系统 `RegisterHotKey`，**不安装键盘钩子**
+- 以普通用户权限运行，**不提权**
+
+因此与主流反作弊（EAC / Vanguard / ACE 等）兼容，可在游戏后台运行。
+
 ### 与游戏反作弊的兼容性
 
 GameHub 面向边玩游戏边使用的场景，代码层面刻意避开了所有反作弊敏感行为：
@@ -238,6 +303,11 @@ GameHub/
 │       ├── EasyBluetoothSettingsWindow.xaml(.cs)
 │       ├── EasyBluetoothFloatingWindow.xaml(.cs)
 │       └── EasyBluetoothFloatingController.cs
+│   └── Dronesee/
+│       ├── DroneseeModule.cs
+│       ├── DroneseeSettingsWindow.xaml(.cs)
+│       ├── DroneseeRecordingEngine.cs
+│       └── ReplayWindow.cs
 └── Assets/
     └── Icons/               # 图标资源
 ```

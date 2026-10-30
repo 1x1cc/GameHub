@@ -84,8 +84,7 @@
 
         <!-- 内容 -->
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" 
-                      HorizontalScrollBarVisibility="Disabled"
-                      CanContentScroll="True">
+                      HorizontalScrollBarVisibility="Disabled">
             <StackPanel>
 
                 <!-- 输出设备 -->
@@ -94,8 +93,9 @@
                         <TextBlock Text="输出设备（播放）" Style="{StaticResource SectionTitle}"/>
                         
                         <!-- 设备列表带复选框 -->
-                        <ListBox x:Name="PlaybackList" Height="140" Margin="0,0,0,8"
-                                 ScrollViewer.CanContentScroll="True" ScrollViewer.VerticalScrollBarVisibility="Auto">
+                        <ListBox x:Name="PlaybackList" MaxHeight="140" Margin="0,0,0,8"
+                                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                 ScrollViewer.VerticalScrollBarVisibility="Auto">
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
                                     <CheckBox Style="{StaticResource DeviceItem}" 
@@ -122,8 +122,9 @@
                         <TextBlock Text="输入设备（录音）" Style="{StaticResource SectionTitle}"/>
                         
                         <!-- 设备列表带复选框 -->
-                        <ListBox x:Name="RecordingList" Height="140" Margin="0,0,0,8"
-                                 ScrollViewer.CanContentScroll="True" ScrollViewer.VerticalScrollBarVisibility="Auto">
+                        <ListBox x:Name="RecordingList" MaxHeight="140" Margin="0,0,0,8"
+                                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                 ScrollViewer.VerticalScrollBarVisibility="Auto">
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
                                     <CheckBox Style="{StaticResource DeviceItem}" 

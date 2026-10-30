@@ -1,0 +1,456 @@
+<Window x:Class="GameHub.Modules.Dronesee.DroneseeSettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Dronesee · 游戏录制与重放" Height="780" Width="680"
+        MinHeight="600" MinWidth="580"
+        WindowStartupLocation="CenterOwner"
+        Background="#F5F7FA"
+        FontFamily="Microsoft YaHei UI">
+
+    <Window.Resources>
+        <ControlTemplate x:Key="RoundedButton" TargetType="Button">
+            <Border x:Name="bd" Background="{TemplateBinding Background}" CornerRadius="6"
+                    Padding="{TemplateBinding Padding}" BorderThickness="0">
+                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+            <ControlTemplate.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter TargetName="bd" Property="Opacity" Value="0.85"/>
+                </Trigger>
+                <Trigger Property="IsPressed" Value="True">
+                    <Setter TargetName="bd" Property="Opacity" Value="0.7"/>
+                </Trigger>
+            </ControlTemplate.Triggers>
+        </ControlTemplate>
+
+        <Style x:Key="PrimaryButton" TargetType="Button">
+            <Setter Property="Background" Value="#4A90D9"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Padding" Value="14,7"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template" Value="{StaticResource RoundedButton}"/>
+        </Style>
+
+        <Style x:Key="SecondaryButton" TargetType="Button">
+            <Setter Property="Background" Value="#E3E9F0"/>
+            <Setter Property="Foreground" Value="#33475B"/>
+            <Setter Property="Padding" Value="14,7"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template" Value="{StaticResource RoundedButton}"/>
+        </Style>
+
+        <Style x:Key="Card" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Padding" Value="16"/>
+            <Setter Property="Margin" Value="0,0,0,12"/>
+        </Style>
+
+        <Style x:Key="SectionTitle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="#22303F"/>
+            <Setter Property="Margin" Value="0,0,0,10"/>
+        </Style>
+
+        <Style x:Key="Hint" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Foreground" Value="#8896A6"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+        </Style>
+
+        <Style x:Key="RowCheckBox" TargetType="CheckBox">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Margin" Value="0,4,0,4"/>
+        </Style>
+
+        <!-- 滑动开关（滑块）：用于「录制 / 即时重放」功能总开关 -->
+        <Style x:Key="ToggleSwitch" TargetType="CheckBox">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="#22303F"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Margin" Value="0,2,0,8"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="CheckBox">
+                        <StackPanel Orientation="Horizontal" Background="Transparent">
+                            <Border x:Name="track" Width="46" Height="24" CornerRadius="12"
+                                    Background="#CFD6DE" VerticalAlignment="Center">
+                                <Border x:Name="thumb" Width="20" Height="20" CornerRadius="10"
+                                        Background="White" HorizontalAlignment="Left" Margin="2,0,0,0"/>
+                            </Border>
+                            <ContentPresenter Margin="10,0,0,0" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="track" Property="Background" Value="#4A90D9"/>
+                                <Setter TargetName="thumb" Property="HorizontalAlignment" Value="Right"/>
+                                <Setter TargetName="thumb" Property="Margin" Value="0,0,2,0"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="ComboBox">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Padding" Value="8,4"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+
+        <Style TargetType="TextBox">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Padding" Value="8,4"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+
+        <Style TargetType="Slider">
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- 标题 -->
+        <StackPanel Grid.Row="0" Margin="2,0,0,14">
+            <TextBlock Text="Dronesee" FontSize="20" FontWeight="Bold" Foreground="#22303F"/>
+            <TextBlock Style="{StaticResource Hint}" Margin="0,4,0,0"
+                       Text="游戏视频录制与即时重放。支持硬件编码（Nvidia NVENC / Intel QSV / AMD VAAPI），热键控制，内存缓存重放。"/>
+        </StackPanel>
+
+        <!-- 内容 -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+
+                <!-- 保存路径 -->
+                <Border Style="{StaticResource Card}">
+                    <StackPanel>
+                        <TextBlock Text="保存路径" Style="{StaticResource SectionTitle}"/>
+
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBox x:Name="SavePathBox" Height="28" Margin="0,0,8,0"
+                                     FontSize="12" VerticalContentAlignment="Center"
+                                     TextWrapping="Wrap"/>
+                            <Button Grid.Column="1" Content="📁 打开文件夹" Style="{StaticResource SecondaryButton}"
+                                    Click="OpenFolder_Click"/>
+                        </Grid>
+
+                        <TextBlock Style="{StaticResource Hint}" Margin="0,6,0,0"
+                                   Text="录制文件将保存到此路径。点击「打开文件夹」可快速访问已录制的视频。"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- 录制设置 -->
+                <Border Style="{StaticResource Card}">
+                    <StackPanel>
+                        <TextBlock Text="录制" Style="{StaticResource SectionTitle}"/>
+
+                        <!-- 录制总开关（滑块，记住上次状态） -->
+                        <CheckBox x:Name="RecordingEnabled" Style="{StaticResource ToggleSwitch}"
+                                  Content="开启录制（打开后：按热键开始，再按热键结束）"
+                                  Checked="RecordingEnabled_Toggled" Unchecked="RecordingEnabled_Toggled"/>
+                        <TextBlock Style="{StaticResource Hint}" Margin="0,0,0,10"
+                                   Text="关闭时录制热键不生效。"/>
+
+                        <!-- 系统声音开关 -->
+                        <CheckBox x:Name="SystemAudioBox" Content="录制系统声音（耳机/扬声器，含游戏声）"
+                                  Style="{StaticResource RowCheckBox}"/>
+
+                        <!-- 麦克风开关 -->
+                        <CheckBox x:Name="MicrophoneEnabled" Content="录制麦克风音频"
+                                  Style="{StaticResource RowCheckBox}"/>
+
+                        <!-- 分辨率 -->
+                        <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                            <TextBlock Text="分辨率" FontSize="12" VerticalAlignment="Center"
+                                       Foreground="#33475B" Width="70"/>
+                            <ComboBox x:Name="ResolutionBox" Width="140" Margin="10,0,0,0"
+                                      FontSize="12" VerticalContentAlignment="Center">
+                                <ComboBoxItem Content="1280×720 (720p)" Tag="1280x720"/>
+                                <ComboBoxItem Content="1920×1080 (1080p)" Tag="1920x1080"/>
+                                <ComboBoxItem Content="2560×1440 (1440p)" Tag="2560x1440"/>
+                                <ComboBoxItem Content="3840×2160 (4K)" Tag="3840x2160"/>
+                                <ComboBoxItem Content="自定义..." Tag="custom"/>
+                            </ComboBox>
+                            <TextBox x:Name="CustomResolutionBox" Width="100" Height="26" Margin="8,0,0,0"
+                                     FontSize="12" VerticalContentAlignment="Center" Visibility="Collapsed"/>
+                        </StackPanel>
+
+                        <!-- 帧率 -->
+                        <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                            <TextBlock Text="帧率" FontSize="12" VerticalAlignment="Center"
+                                       Foreground="#33475B" Width="70"/>
+                            <ComboBox x:Name="FrameRateBox" Width="120" Margin="10,0,0,0"
+                                      FontSize="12" VerticalContentAlignment="Center">
+                                <ComboBoxItem Content="30 FPS（推荐）" Tag="30"/>
+                                <ComboBoxItem Content="60 FPS" Tag="60"/>
+                                <ComboBoxItem Content="120 FPS" Tag="120"/>
+                                <ComboBoxItem Content="144 FPS" Tag="144"/>
+                                <ComboBoxItem Content="240 FPS" Tag="240"/>
+                            </ComboBox>
+                        </StackPanel>
+
+                        <!-- 码率 -->
+                        <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                            <TextBlock Text="码率" FontSize="12" VerticalAlignment="Center"
+                                       Foreground="#33475B" Width="70"/>
+                            <ComboBox x:Name="BitrateBox" Width="120" Margin="10,0,0,0"
+                                      FontSize="12" VerticalContentAlignment="Center">
+                                <ComboBoxItem Content="1000 kbps（低）" Tag="1000"/>
+                                <ComboBoxItem Content="2500 kbps（推荐）" Tag="2500"/>
+                                <ComboBoxItem Content="5000 kbps（高）" Tag="5000"/>
+                                <ComboBoxItem Content="10000 kbps（极高）" Tag="10000"/>
+                                <ComboBoxItem Content="自定义..." Tag="custom"/>
+                            </ComboBox>
+                            <TextBox x:Name="CustomBitrateBox" Width="80" Height="26" Margin="8,0,0,0"
+                                     FontSize="12" VerticalContentAlignment="Center" Visibility="Collapsed"/>
+                        </StackPanel>
+
+                        <!-- 编码器 -->
+                        <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                            <TextBlock Text="编码器" FontSize="12" VerticalAlignment="Center"
+                                       Foreground="#33475B" Width="70"/>
+                            <ComboBox x:Name="EncoderBox" Width="160" Margin="10,0,0,0"
+                                      FontSize="12" VerticalContentAlignment="Center">
+                                <ComboBoxItem Content="自动检测（推荐）" Tag="auto"/>
+                                <ComboBoxItem Content="Nvidia NVENC (h264_nvenc)" Tag="h264_nvenc"/>
+                                <ComboBoxItem Content="Intel QSV (h264_qsv)" Tag="h264_qsv"/>
+                                <ComboBoxItem Content="AMD VAAPI (h264_vaapi)" Tag="h264_vaapi"/>
+                                <ComboBoxItem Content="AMD AMF (h264_amf)" Tag="h264_amf"/>
+                                <ComboBoxItem Content="软件编码 (libx264)" Tag="libx264"/>
+                            </ComboBox>
+                        </StackPanel>
+
+                        <!-- 封装格式 -->
+                        <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                            <TextBlock Text="格式" FontSize="12" VerticalAlignment="Center"
+                                       Foreground="#33475B" Width="70"/>
+                            <ComboBox x:Name="ContainerBox" Width="120" Margin="10,0,0,0"
+                                      FontSize="12" VerticalContentAlignment="Center">
+                                <ComboBoxItem Content="MP4（推荐）" Tag="mp4"/>
+                                <ComboBoxItem Content="MKV" Tag="mkv"/>
+                            </ComboBox>
+                        </StackPanel>
+
+                        <!-- 关键帧间隔 -->
+                        <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                            <TextBlock Text="关键帧" FontSize="12" VerticalAlignment="Center"
+                                       Foreground="#33475B" Width="70"/>
+                            <ComboBox x:Name="KeyframeBox" Width="100" Margin="10,0,0,0"
+                                      FontSize="12" VerticalContentAlignment="Center">
+                                <ComboBoxItem Content="1 秒" Tag="1"/>
+                                <ComboBoxItem Content="2 秒（推荐）" Tag="2"/>
+                                <ComboBoxItem Content="3 秒" Tag="3"/>
+                                <ComboBoxItem Content="5 秒" Tag="5"/>
+                                <ComboBoxItem Content="10 秒" Tag="10"/>
+                            </ComboBox>
+                            <TextBlock Text="秒" FontSize="11" Margin="4,0,0,0" VerticalAlignment="Center"
+                                       Foreground="#8896A6"/>
+                        </StackPanel>
+
+                        <!-- 音频参数 -->
+                        <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                            <TextBlock Text="音频采样" FontSize="12" VerticalAlignment="Center"
+                                       Foreground="#33475B" Width="70"/>
+                            <ComboBox x:Name="AudioSampleRateBox" Width="100" Margin="10,0,0,0"
+                                      FontSize="12" VerticalContentAlignment="Center">
+                                <ComboBoxItem Content="44100 Hz" Tag="44100"/>
+                                <ComboBoxItem Content="48000 Hz" Tag="48000"/>
+                                <ComboBoxItem Content="96000 Hz" Tag="96000"/>
+                            </ComboBox>
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                            <TextBlock Text="音频声道" FontSize="12" VerticalAlignment="Center"
+                                       Foreground="#33475B" Width="70"/>
+                            <ComboBox x:Name="AudioChannelsBox" Width="100" Margin="10,0,0,0"
+                                      FontSize="12" VerticalContentAlignment="Center">
+                                <ComboBoxItem Content="立体声 (2)" Tag="2"/>
+                                <ComboBoxItem Content="单声道 (1)" Tag="1"/>
+                            </ComboBox>
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                            <TextBlock Text="音频码率" FontSize="12" VerticalAlignment="Center"
+                                       Foreground="#33475B" Width="70"/>
+                            <ComboBox x:Name="AudioBitrateBox" Width="100" Margin="10,0,0,0"
+                                      FontSize="12" VerticalContentAlignment="Center">
+                                <ComboBoxItem Content="64 kbps" Tag="64"/>
+                                <ComboBoxItem Content="128 kbps（推荐）" Tag="128"/>
+                                <ComboBoxItem Content="192 kbps" Tag="192"/>
+                                <ComboBoxItem Content="320 kbps" Tag="320"/>
+                            </ComboBox>
+                        </StackPanel>
+
+                        <TextBlock Style="{StaticResource Hint}" Margin="0,8,0,0"
+                                   Text="编码器优先使用硬件加速（显卡/核显专用模块），不占用游戏性能。默认自动检测可用编码器。"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- 即时重放 -->
+                <Border Style="{StaticResource Card}">
+                    <StackPanel>
+                        <TextBlock Text="即时重放" Style="{StaticResource SectionTitle}"/>
+
+                        <!-- 即时重放总开关（滑块，记住上次状态） -->
+                        <CheckBox x:Name="InstantReplayEnabled" Style="{StaticResource ToggleSwitch}"
+                                  Content="开启即时重放（打开后：后台持续缓存，按热键保存一份回放录像）"
+                                  Checked="InstantReplayEnabled_Toggled" Unchecked="InstantReplayEnabled_Toggled"/>
+                        <TextBlock Style="{StaticResource Hint}" Margin="0,0,0,10"
+                                   Text="关闭时即时重放热键不生效。热键不是开关，每次按下只保存一份回放，功能保持开启。"/>
+
+                        <!-- 最大重放时长 -->
+                        <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                            <TextBlock Text="最大时长" FontSize="12" VerticalAlignment="Center"
+                                       Foreground="#33475B" Width="70"/>
+                            <Slider x:Name="MaxReplayDurationSlider" Width="180" Margin="10,0,0,0"
+                                    Minimum="5" Maximum="1800" Value="30"
+                                    TickFrequency="30" IsSnapToTickEnabled="True"
+                                    ValueChanged="MaxReplayDurationSlider_ValueChanged"/>
+                            <TextBlock x:Name="MaxReplayDurationText" Text="30 秒" FontSize="12"
+                                       Margin="8,0,0,0" VerticalAlignment="Center" Foreground="#33475B"/>
+                        </StackPanel>
+
+                        <!-- 内存缓存 -->
+                        <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                            <TextBlock Text="内存缓存" FontSize="12" VerticalAlignment="Center"
+                                       Foreground="#33475B" Width="70"/>
+                            <ComboBox x:Name="MemoryCacheBox" Width="120" Margin="10,0,0,0"
+                                      FontSize="12" VerticalContentAlignment="Center"
+                                      SelectionChanged="MemoryCacheBox_SelectionChanged">
+                                <ComboBoxItem Content="128 MB" Tag="128"/>
+                                <ComboBoxItem Content="256 MB" Tag="256"/>
+                                <ComboBoxItem Content="512 MB（推荐）" Tag="512"/>
+                                <ComboBoxItem Content="1024 MB" Tag="1024"/>
+                                <ComboBoxItem Content="2048 MB" Tag="2048"/>
+                                <ComboBoxItem Content="4096 MB" Tag="4096"/>
+                            </ComboBox>
+                            <TextBlock x:Name="MemoryUsageText" FontSize="11" Margin="12,0,0,0"
+                                       VerticalAlignment="Center" Foreground="#BF360C">
+                                0 MB / 512 MB
+                            </TextBlock>
+                        </StackPanel>
+
+                        <!-- 重放帧率 -->
+                        <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                            <TextBlock Text="重放帧率" FontSize="12" VerticalAlignment="Center"
+                                       Foreground="#33475B" Width="70"/>
+                            <ComboBox x:Name="ReplayFrameRateBox" Width="120" Margin="10,0,0,0"
+                                      FontSize="12" VerticalContentAlignment="Center">
+                                <ComboBoxItem Content="30 FPS（推荐）" Tag="30"/>
+                                <ComboBoxItem Content="60 FPS" Tag="60"/>
+                                <ComboBoxItem Content="120 FPS" Tag="120"/>
+                            </ComboBox>
+                        </StackPanel>
+
+                        <!-- 即时重放分辨率 -->
+                        <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                            <TextBlock Text="重放分辨率" FontSize="12" VerticalAlignment="Center"
+                                       Foreground="#33475B" Width="70"/>
+                            <ComboBox x:Name="ReplayResolutionBox" Width="140" Margin="10,0,0,0"
+                                      FontSize="12" VerticalContentAlignment="Center">
+                                <ComboBoxItem Content="1280×720 (720p)" Tag="1280x720"/>
+                                <ComboBoxItem Content="1920×1080 (1080p)" Tag="1920x1080"/>
+                                <ComboBoxItem Content="2560×1440 (1440p)" Tag="2560x1440"/>
+                                <ComboBoxItem Content="3840×2160 (4K)" Tag="3840x2160"/>
+                                <ComboBoxItem Content="自定义..." Tag="custom"/>
+                            </ComboBox>
+                            <TextBox x:Name="CustomReplayResolutionBox" Width="100" Height="26" Margin="8,0,0,0"
+                                     FontSize="12" VerticalContentAlignment="Center" Visibility="Collapsed"/>
+                        </StackPanel>
+
+                        <!-- 即时重放码率 -->
+                        <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                            <TextBlock Text="重放码率" FontSize="12" VerticalAlignment="Center"
+                                       Foreground="#33475B" Width="70"/>
+                            <ComboBox x:Name="ReplayBitrateBox" Width="120" Margin="10,0,0,0"
+                                      FontSize="12" VerticalContentAlignment="Center">
+                                <ComboBoxItem Content="1000 kbps（低）" Tag="1000"/>
+                                <ComboBoxItem Content="2500 kbps（推荐）" Tag="2500"/>
+                                <ComboBoxItem Content="5000 kbps（高）" Tag="5000"/>
+                                <ComboBoxItem Content="10000 kbps（极高）" Tag="10000"/>
+                                <ComboBoxItem Content="自定义..." Tag="custom"/>
+                            </ComboBox>
+                            <TextBox x:Name="CustomReplayBitrateBox" Width="80" Height="26" Margin="8,0,0,0"
+                                     FontSize="12" VerticalContentAlignment="Center" Visibility="Collapsed"/>
+                        </StackPanel>
+
+                        <TextBlock Style="{StaticResource Hint}" Margin="0,8,0,0"
+                                   Text="OBS 式方案：后台把画面用显卡硬件编码成 H.264 流（含系统声音/麦克风），滚动缓存在内存里。保存片段时不重新编码，只转封装，速度很快。"/>
+
+                        <!-- 回放缓存与时长（实时） -->
+                        <Border Margin="0,10,0,0" Padding="10" Background="#EEF4FB" CornerRadius="4">
+                            <StackPanel>
+                                <TextBlock Text="回放缓存与时长（受内存条限制）" FontSize="12" FontWeight="SemiBold"
+                                           Foreground="#215A96" Margin="0,0,0,4"/>
+                                <TextBlock x:Name="MemoryUsageDetailText" FontSize="11"
+                                           Foreground="#33475B" TextWrapping="Wrap">
+                                    当前占用：0 MB / 上限 512 MB
+                                </TextBlock>
+                                <TextBlock x:Name="BufferCapacityText" FontSize="11" Margin="0,4,0,0"
+                                           Foreground="#33475B" TextWrapping="Wrap">
+                                    可缓存时长：—
+                                </TextBlock>
+                                <TextBlock x:Name="MemoryHintText" FontSize="11" Margin="0,6,0,0"
+                                           Foreground="#8896A6" TextWrapping="Wrap"
+                                           Text="缓冲占的是内存条，大小 = 码率 ÷ 8，与硬盘容量、硬盘自带缓存无关；硬盘只在保存片段时写一次文件。码率越低能存的时长越长。"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Border>
+
+                <!-- 热键绑定 -->
+                <Border Style="{StaticResource Card}">
+                    <StackPanel>
+                        <TextBlock Text="热键绑定" Style="{StaticResource SectionTitle}"/>
+
+                        <!-- 录制热键 -->
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                            <CheckBox x:Name="RecordHotkeyEnabled" Content="启用录制热键"
+                                      Style="{StaticResource RowCheckBox}" VerticalAlignment="Center"/>
+                            <Button Content="绑定热键" Style="{StaticResource SecondaryButton}"
+                                    Margin="12,0,0,0" Click="BindRecordHotkey_Click"/>
+                            <TextBlock x:Name="RecordHotkeyText" FontSize="12" Margin="12,0,0,0"
+                                       VerticalAlignment="Center" Foreground="#33475B" Text="Ctrl+Alt+R"/>
+                        </StackPanel>
+
+                        <!-- 即时重放热键 -->
+                        <StackPanel Orientation="Horizontal">
+                            <CheckBox x:Name="ReplayHotkeyEnabled" Content="启用即时重放热键"
+                                      Style="{StaticResource RowCheckBox}" VerticalAlignment="Center"/>
+                            <Button Content="绑定热键" Style="{StaticResource SecondaryButton}"
+                                    Margin="12,0,0,0" Click="BindReplayHotkey_Click"/>
+                            <TextBlock x:Name="ReplayHotkeyText" FontSize="12" Margin="12,0,0,0"
+                                       VerticalAlignment="Center" Foreground="#33475B" Text="Ctrl+Alt+P"/>
+                        </StackPanel>
+
+                        <TextBlock Style="{StaticResource Hint}" Margin="0,10,0,0"
+                                   Text="点击「绑定热键」后直接按下组合键即可录制/重放。热键在工具箱运行时全局生效（可最小化）。"/>
+                    </StackPanel>
+                </Border>
+
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- 底部 -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+            <Button Content="保存" Style="{StaticResource PrimaryButton}" Click="Save_Click"/>
+            <Button Content="关闭" Style="{StaticResource SecondaryButton}" Margin="8,0,0,0"
+                    Click="Close_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>

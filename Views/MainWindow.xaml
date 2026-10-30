@@ -192,7 +192,7 @@
 
         <!-- 底部状态栏 -->
         <Border Grid.Row="2" Padding="12,6" Background="Transparent" BorderBrush="#D0D8E0" BorderThickness="0,1,0,0">
-            <TextBlock Text="GameHub v1.0.0 · 音频与游戏工具箱" FontSize="10" Foreground="#999999" 
+            <TextBlock Text="GameHub v1.0.5 · 音频 · 蓝牙 · 电量 · 录制" FontSize="10" Foreground="#999999" 
                        HorizontalAlignment="Center"/>
         </Border>
     </Grid>

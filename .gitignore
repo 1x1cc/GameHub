@@ -33,3 +33,10 @@ Thumbs.db
 
 # ===== 编译校验临时输出 =====
 buildcheck*/
+
+# ===== 本地发布产物（打包目录不入库，正式包由 Releases 托管）=====
+GameHub_LATEST*/
+GameHub_v*-win-x64/
+
+# ===== 本地测试 / 校验脚本 =====
+_*.ps1

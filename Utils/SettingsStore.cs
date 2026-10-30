@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 
 namespace GameHub.Utils
@@ -83,6 +85,12 @@ namespace GameHub.Utils
         /// 独立成一个子对象，新增模块不影响已有模块的设置项。
         /// </summary>
         public EasyBluetoothSettings EasyBluetooth { get; set; } = new();
+
+        /// <summary>
+        /// Dronesee 模块（游戏视频录制与即时重放）的设置。
+        /// 独立成一个子对象，新增模块不影响已有模块的设置项。
+        /// </summary>
+        public DroneseeSettings Dronesee { get; set; } = new();
     }
 
     /// <summary>
@@ -147,6 +155,193 @@ namespace GameHub.Utils
             LowBatteryThresholdPercent = NormalizeThreshold(LowBatteryThresholdPercent);
             LowBatteryRepeatMinutes = NormalizeRepeat(LowBatteryRepeatMinutes);
             FloatingOpacity = NormalizeOpacity(FloatingOpacity);
+        }
+    }
+
+    /// <summary>
+    /// Dronesee 模块设置：游戏视频录制与即时重放。
+    /// 所有可调数值都经 Normalize 收敛，避免 settings.json 被手改成极端值后
+    /// 导致录制参数异常或内存占用过大。
+    /// </summary>
+    public sealed class DroneseeSettings
+    {
+        // ---------- 录制设置 ----------
+
+        /// <summary>程序目录下用于存放录制产物的子文件夹名。</summary>
+        public const string SaveSubFolderName = "GameHub Recordings";
+
+        /// <summary>录制文件保存路径。默认为 GameHub 程序目录下的 GameHub Recordings。</summary>
+        public string SavePath { get; set; } = DefaultSaveFolder();
+
+        /// <summary>
+        /// 计算默认保存目录：<b>GameHub 程序所在文件夹</b>下新建一个子文件夹。
+        ///
+        /// 不再依赖系统「视频」库（它在部分机器上会被重定向/未初始化，
+        /// 导致默认值为空）。程序目录不可写（例如装在 Program Files）时
+        /// 退回 %LOCALAPPDATA%，保证任何电脑上都不会出现空白路径。
+        /// </summary>
+        public static string DefaultSaveFolder()
+        {
+            string appDir = AppDomain.CurrentDomain.BaseDirectory;
+            string candidate = Path.Combine(appDir, SaveSubFolderName);
+
+            if (IsWritable(candidate)) return candidate;
+
+            string local = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            if (!string.IsNullOrWhiteSpace(local))
+                return Path.Combine(local, "GameHub", SaveSubFolderName);
+
+            return candidate;
+        }
+
+        /// <summary>目录是否可创建且可写（装在 Program Files 下时用来决定回退）。</summary>
+        private static bool IsWritable(string dir)
+        {
+            try
+            {
+                Directory.CreateDirectory(dir);
+                string probe = Path.Combine(dir, $".write_test_{Guid.NewGuid():N}.tmp");
+                File.WriteAllText(probe, "ok");
+                File.Delete(probe);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        // ---------- 功能总开关（设置面板的滑块，默认关闭） ----------
+
+        /// <summary>
+        /// 录制功能总开关。默认关闭：
+        /// 关闭时录制热键不触发录制；打开后按一次热键开始录制，再按一次结束录制。
+        /// </summary>
+        public bool RecordingEnabled { get; set; } = false;
+
+        /// <summary>是否录制系统输出声音（耳机/扬声器里正在播放的声音，含游戏声）。
+        /// WASAPI 环回捕捉，只读不写，不安装虚拟声卡、不改系统声音设置。</summary>
+        public bool SystemAudioEnabled { get; set; } = true;
+
+        /// <summary>是否启用麦克风录制。</summary>
+        public bool MicrophoneEnabled { get; set; } = false;
+
+        /// <summary>录制分辨率（宽度×高度，如 1920x1080）。</summary>
+        public string Resolution { get; set; } = "1920x1080";
+
+        /// <summary>录制帧率（FPS）。</summary>
+        public int FrameRate { get; set; } = 30;
+
+        /// <summary>录制码率（kbps）。</summary>
+        public int Bitrate { get; set; } = 2500;
+
+        /// <summary>编码器名称（如 h264_nvenc、h264_qsv、h264_vaapi 等）。</summary>
+        public string Encoder { get; set; } = "auto";
+
+        /// <summary>封装格式（mp4 或 mkv）。</summary>
+        public string ContainerFormat { get; set; } = "mp4";
+
+        /// <summary>关键帧间隔（秒）。</summary>
+        public int KeyframeInterval { get; set; } = 2;
+
+        /// <summary>音频采样率（Hz）。</summary>
+        public int AudioSampleRate { get; set; } = 44100;
+
+        /// <summary>音频声道数（1=单声道，2=立体声）。</summary>
+        public int AudioChannels { get; set; } = 2;
+
+        /// <summary>音频码率（kbps）。</summary>
+        public int AudioBitrate { get; set; } = 128;
+
+        // ---------- 即时重放设置 ----------
+
+        /// <summary>
+        /// 即时重放功能总开关。默认关闭：
+        /// 打开后后台持续缓存最近一段画面+声音；按一次热键保存一份回放录像。
+        /// </summary>
+        public bool InstantReplayEnabled { get; set; } = false;
+
+        /// <summary>最大重放时长（秒），最多 1800 秒（30 分钟）。</summary>
+        public int MaxReplayDurationSeconds { get; set; } = 30;
+
+        /// <summary>内存缓存大小（MB），占用过大时会提示。</summary>
+        public int MemoryCacheMB { get; set; } = 512;
+
+        /// <summary>重放帧率（FPS）。</summary>
+        public int ReplayFrameRate { get; set; } = 30;
+
+        /// <summary>重放分辨率（宽度×高度，如 1920x1080）。</summary>
+        public string ReplayResolution { get; set; } = "1920x1080";
+
+        /// <summary>重放码率（kbps）。</summary>
+        public int ReplayBitrate { get; set; } = 2500;
+
+        // ---------- 热键绑定 ----------
+
+        /// <summary>录制热键。</summary>
+        public string RecordHotkey { get; set; } = "Ctrl+Alt+R";
+
+        /// <summary>是否启用录制热键。</summary>
+        public bool RecordHotkeyEnabled { get; set; } = true;
+
+        /// <summary>即时重放热键。</summary>
+        public string ReplayHotkey { get; set; } = "Ctrl+Alt+P";
+
+        /// <summary>是否启用即时重放热键。</summary>
+        public bool ReplayHotkeyEnabled { get; set; } = true;
+
+        // ---------- 归一化方法 ----------
+
+        public static int NormalizeFrameRate(int fps) => Math.Clamp(fps, 1, 240);
+
+        public static int NormalizeBitrate(int kbps) => Math.Clamp(kbps, 100, 100000);
+
+        public static int NormalizeKeyframeInterval(int seconds) => Math.Clamp(seconds, 1, 60);
+
+        public static int NormalizeAudioSampleRate(int hz) => Math.Clamp(hz, 22050, 192000);
+
+        public static int NormalizeAudioChannels(int channels) => Math.Clamp(channels, 1, 2);
+
+        public static int NormalizeAudioBitrate(int kbps) => Math.Clamp(kbps, 32, 320);
+
+        public static int NormalizeMaxReplayDuration(int seconds) => Math.Clamp(seconds, 5, 1800);
+
+        public static int NormalizeMemoryCache(int mb) => Math.Clamp(mb, 64, 4096);
+
+        /// <summary>把从 JSON 读进来的值收敛到合法范围。</summary>
+        public void Normalize()
+        {
+            FrameRate = NormalizeFrameRate(FrameRate);
+            Bitrate = NormalizeBitrate(Bitrate);
+            KeyframeInterval = NormalizeKeyframeInterval(KeyframeInterval);
+            AudioSampleRate = NormalizeAudioSampleRate(AudioSampleRate);
+            AudioChannels = NormalizeAudioChannels(AudioChannels);
+            AudioBitrate = NormalizeAudioBitrate(AudioBitrate);
+            MaxReplayDurationSeconds = NormalizeMaxReplayDuration(MaxReplayDurationSeconds);
+            MemoryCacheMB = NormalizeMemoryCache(MemoryCacheMB);
+            ReplayFrameRate = NormalizeFrameRate(ReplayFrameRate);
+            ReplayBitrate = NormalizeBitrate(ReplayBitrate);
+
+            // 重放分辨率归一化
+            var validResolutions = new[] { "1280x720", "1920x1080", "2560x1440", "3840x2160" };
+            if (!validResolutions.Any(r => r == ReplayResolution))
+            {
+                // 如果是自定义分辨率，保持原样；否则使用默认
+                if (!ReplayResolution.Contains('x') || ReplayResolution.Split('x').Length != 2)
+                    ReplayResolution = "1920x1080";
+            }
+
+            // 保存路径：null/空白 / 根盘符（如 "C:\\"）→ 一律回退默认视频目录
+            bool pathInvalid = string.IsNullOrWhiteSpace(SavePath)
+                               || (SavePath.Length == 3 && char.IsLetter(SavePath[0]) && SavePath[1] == ':' && SavePath[2] == '\\')
+                               || SavePath.TrimEnd().EndsWith(":");
+            if (pathInvalid)
+                SavePath = DefaultSaveFolder();
+            else
+                SavePath = SavePath.Trim();
+
+            // 确保保存路径存在
+            try { Directory.CreateDirectory(SavePath); } catch { }
         }
     }
 
