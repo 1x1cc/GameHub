@@ -1,0 +1,120 @@
+<Window x:Class="GameHub.Modules.GlassBoard.GlassBoardSettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="clr-namespace:GameHub.Controls"
+        Title="GlassBoard 设置"
+        Width="1400" Height="780"
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent"
+        ResizeMode="NoResize" ShowInTaskbar="False" Topmost="False"
+        WindowStartupLocation="CenterScreen"
+        UseLayoutRounding="True" SnapsToDevicePixels="True"
+        FontFamily="Segoe UI, Microsoft YaHei UI"
+        Activated="Window_Activated"
+        Deactivated="Window_Deactivated">
+
+    <!-- 布局照原版 GlassWindow：外层 Root 留 14 边距，里面一层 Surface 圆角玻璃 + 投影，
+         颜色一律由 GlassBoardTheme 在代码里赋值，XAML 里不写死任何浅色。 -->
+    <Window.Resources>
+        <!-- 圆形滑块开关：与主界面卡片同款。
+             ToggleSlider 本体不含模板（靠 PART_Track / PART_Thumb 工作），
+             样式原本只定义在 MainWindow.xaml 里，这里复制一份，否则在设置窗口里
+             会退化成默认灰色 ToggleButton、滑块不动。 -->
+        <Style TargetType="{x:Type controls:ToggleSlider}">
+            <Setter Property="Width" Value="46"/>
+            <Setter Property="Height" Value="26"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type controls:ToggleSlider}">
+                        <Grid Background="Transparent">
+                            <Border x:Name="PART_Track" CornerRadius="13"
+                                    Background="{TemplateBinding OffBrush}"/>
+                            <Border x:Name="PART_Thumb" Width="20" Height="20" CornerRadius="10"
+                                    Margin="3,0,0,0" HorizontalAlignment="Left"
+                                    VerticalAlignment="Center" Background="White">
+                                <Border.Effect>
+                                    <DropShadowEffect BlurRadius="4" ShadowDepth="1" Opacity="0.28" Color="#000000"/>
+                                </Border.Effect>
+                            </Border>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="14">
+
+        <!-- 环境色柔和阴影：无偏移的大范围模糊（BlurRadius 大 + ShadowDepth 0），
+             避免深色硬投影让页面发脏；配 20 圆角与外侧 4px 留白，保持透气。 -->
+        <Border x:Name="Surface" CornerRadius="20" BorderThickness="1">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="38" ShadowDepth="0" Opacity="0.20" Color="#FF1B2430"/>
+            </Border.Effect>
+        </Border>
+
+        <Grid x:Name="ContentGrid" Margin="4,6,4,6">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- 标题栏：无边框窗口，按住这里可以把窗口拖走 -->
+            <Grid x:Name="TitleBar" Grid.Row="0" Background="Transparent"
+                  Margin="0,0,0,8" MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0">
+                    <TextBlock x:Name="TitleText" Text="GlassBoard · 外观与组件设置"
+                               FontSize="17" FontWeight="SemiBold"/>
+                    <TextBlock x:Name="TitleHint" FontSize="11.5" Margin="0,3,0,0"
+                               Text="入口在桌面 Dock 的 ⚙；改动立即生效，Esc 关闭。"/>
+                </StackPanel>
+
+                <!-- 关闭按钮用矢量画叉，不依赖字体字形：
+                     ✕(U+2715) 在 Segoe UI / 微软雅黑里没有字形，回退后显示成两个点（用户反馈）。 -->
+                <Button x:Name="CloseButton" Grid.Column="1"
+                        Width="38" Height="38" MinHeight="38" Padding="0"
+                        VerticalAlignment="Top" Click="Close_Click"
+                        ToolTip="关闭（Esc）">
+                    <Path Data="M 0,0 L 14,14 M 14,0 L 0,14"
+                          Stroke="#F4F6FC" StrokeThickness="2"
+                          StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                          Width="14" Height="14" Stretch="None"/>
+                </Button>
+            </Grid>
+
+            <!-- 四行卡片（2026-11-15 用户要求）：第一行固定 总开关/逐项控制/兜底恢复/配置与维护/行为，
+                 其余顺序不变；每行 5 张等宽，**行内按该行最高的卡片定高**、行间留白 8px。
+                 所以这里不用 UniformGrid（它只能全表等高）—— 卡片仍先建到下面七个功能面板里
+                 （x:Name 不能改，代码按名字往里填），建完由 RefreshPages() 按行搬进 RowHost。 -->
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <StackPanel>
+
+                    <!-- 卡片先在七个功能面板里建好，再由 RefreshPages() 统一搬进 CardGrid（隐藏，只是中转站） -->
+                    <StackPanel x:Name="HolderPages" Visibility="Collapsed">
+                        <WrapPanel x:Name="BoardPage"/>
+                        <WrapPanel x:Name="DockPage"/>
+                        <WrapPanel x:Name="WidgetPage"/>
+                        <WrapPanel x:Name="OrbPage"/>
+                        <WrapPanel x:Name="CleanPage"/>
+                        <WrapPanel x:Name="GeneralPage"/>
+                        <WrapPanel x:Name="FloatingPage"/>
+                    </StackPanel>
+
+                    <!-- 每行一个 5 列等宽 Grid，由 RefreshPages() 生成（行内自动等高） -->
+                    <StackPanel x:Name="RowHost" Margin="2"/>
+
+                </StackPanel>
+            </ScrollViewer>
+
+            <TextBlock x:Name="StatusHint" Grid.Row="2" Margin="2,8,2,0"
+                       FontSize="12" TextWrapping="Wrap"
+                       Text="提示：Dock 与大面板会自动重建一次以套用新配置。"/>
+        </Grid>
+    </Grid>
+</Window>

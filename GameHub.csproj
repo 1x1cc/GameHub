@@ -1,0 +1,82 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+    <SupportedOSPlatformVersion>10.0.19041.0</SupportedOSPlatformVersion>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+    <!-- 托盘图标依赖 System.Windows.Forms.NotifyIcon；
+         仅用于托盘，不使用 WinForms 的消息循环（WPF 自带）。
+         这里声明 DPI 模式只是为了消除启用 WinForms 后产生的 WFAC010 提示：
+         实际的 DPI 感知仍然由 app.manifest（PerMonitorV2）与代码里的
+         SetProcessDpiAwareness 决定，WPF 不走 WinForms 的 HighDpiMode。 -->
+    <UseWindowsForms>true</UseWindowsForms>
+    <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\Icons\gamehub.ico</ApplicationIcon>
+    <AssemblyName>GameHub</AssemblyName>
+    <RootNamespace>GameHub</RootNamespace>
+    <Version>1.1.0</Version>
+    <FileVersion>1.1.0</FileVersion>
+    <AssemblyVersion>1.1.0</AssemblyVersion>
+    <Authors>GameHub</Authors>
+    <Description>A unified audio and gaming toolkit for Windows</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
+    <PackageReference Include="Microsoft.Win32.SystemEvents" Version="8.0.0" />
+    <PackageReference Include="System.Drawing.Common" Version="8.0.1" />
+    <PackageReference Include="Vortice.Direct3D11" Version="3.8.3" />
+    <PackageReference Include="Vortice.DXGI" Version="3.8.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="WindowsBase" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Tools 下的独立工具项目不参与主程序编译 -->
+    <Compile Remove="Tools\**\*.cs" />
+    <!-- publish/ 是 .gitignore 里的发布输出目录，但里面有 Modules/Dronesee 的源码副本；
+         不过滤会与主工程同名类重复定义（CS0111/CS0102），导致 dotnet build 直接失败。 -->
+    <Compile Remove="publish\**\*.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\**\*.*" />
+  </ItemGroup>
+
+  <!-- Pavise：独立运行的性能 / 后台压制模块。
+       Pavise.exe 由随仓库维护的 Pavise 源码编译（独立于上游发行版），随 GameHub 一起分发；
+       这里把它放到 exe 旁的 Modules\Pavise\，卡片点击后按独立进程拉起（不内嵌）。 -->
+  <ItemGroup>
+    <Content Include="Modules\Pavise\**\*.*"
+             Exclude="Modules\Pavise\**\*.cs"
+             Link="Modules\Pavise\%(RecursiveDir)%(Filename)%(Extension)"
+             CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!-- FFmpeg：Dronesee 录制与即时重放的硬依赖。
+       找不到 ffmpeg.exe 时，即时重放缓冲根本不会启动（日志只留一句“FFmpeg 未找到”，
+       界面表现为按热键总是“没有可保存的内容”）。
+       仓库根目录放了 ffmpeg.exe 就自动复制到 exe 旁边；没放也不影响构建。
+       用 Update（不是 Include）：SDK 默认 glob 已经把根目录文件收进 None，
+       再 Include 会触发 NETSDK1022 重复项错误。 -->
+  <ItemGroup Condition="Exists('$(MSBuildProjectDirectory)\ffmpeg.exe')">
+    <None Update="ffmpeg.exe" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!-- 发布时把 Pavise 放到发布的 exe 旁边（目录名与上面 Link 保持一致，查找逻辑只有一套）。 -->
+  <Target Name="CopyPaviseAssets" AfterTargets="Publish">
+    <ItemGroup>
+      <PaviseFiles Include="$(MSBuildProjectDirectory)\Modules\Pavise\**\*.*" Exclude="$(MSBuildProjectDirectory)\Modules\Pavise\**\*.cs" />
+    </ItemGroup>
+    <Copy SourceFiles="@(PaviseFiles)" DestinationFiles="@(PaviseFiles->'$(PublishDir)Modules\Pavise\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+    <Message Importance="high" Text="Pavise：独立进程与许可文件已复制到 $(PublishDir)Modules\Pavise" />
+  </Target>
+
+</Project>

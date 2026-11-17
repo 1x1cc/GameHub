@@ -1,0 +1,49 @@
+<Application x:Class="GameHub.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- 不再使用 StartupUri：
+         主窗口需要在 OnStartup 里按命令行（是否为开机自启动）决定"显示"还是"只驻留托盘"，
+         StartupUri 会无条件把窗口显示出来，来不及做这个判断。 -->
+
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <!-- GameHub 主题（应用级）：调色板 + 控件样式。
+                     放在应用级而不是逐窗口合并，@一（模块页、弹窗、对话框）都能拿到同一套主题，
+                     不会出现“内容黑了、某些窗口还是白的/字是黑的”。 -->
+                <ResourceDictionary Source="pack://application:,,,/Themes/PaviseDark.xaml"/>
+                <ResourceDictionary Source="Converters/AutoStartConverter.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+
+            <!-- 第 5 条：统一的「?」说明按钮（点一下在按钮上方浮出主题气泡，内容见 controls:HelpBubble.Text） -->
+            <Style x:Key="HelpButton" TargetType="Button">
+                <Setter Property="Width" Value="16"/>
+                <Setter Property="Height" Value="16"/>
+                <Setter Property="Padding" Value="0"/>
+                <Setter Property="FontSize" Value="10"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="Focusable" Value="False"/>
+                <Setter Property="ToolTip" Value="查看说明"/>
+                <Setter Property="Foreground" Value="{DynamicResource DimBrush}"/>
+                <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border x:Name="ring" CornerRadius="8"
+                                    Background="{TemplateBinding Background}"
+                                    BorderBrush="{DynamicResource StrokeBrush}" BorderThickness="1">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="ring" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                                    <Setter Property="Foreground" Value="{DynamicResource FgBrush}"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

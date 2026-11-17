@@ -1,0 +1,201 @@
+<Window x:Class="GameHub.Modules.SoundSwitch.SoundSwitchSettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="SoundSwitch · 设备切换" Height="680" Width="580"
+        MinHeight="520" MinWidth="480"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource BgBrush}"
+        FontFamily="Microsoft YaHei UI">
+
+    <Window.Resources>
+        <ResourceDictionary>
+            <!-- 主题由 App.xaml 在应用级合并（Themes/PaviseDark.xaml）；此处不再重复合并，
+                 否则会复制第二份画刷实例，运行时换肤时本窗口不会被更新。 -->
+
+            <ControlTemplate x:Key="RoundedButton" TargetType="Button">
+                <Border x:Name="bd" Background="{TemplateBinding Background}" CornerRadius="6"
+                        Padding="{TemplateBinding Padding}" BorderThickness="0">
+                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+                <ControlTemplate.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter TargetName="bd" Property="Opacity" Value="0.85"/>
+                    </Trigger>
+                    <Trigger Property="IsPressed" Value="True">
+                        <Setter TargetName="bd" Property="Opacity" Value="0.7"/>
+                    </Trigger>
+                </ControlTemplate.Triggers>
+            </ControlTemplate>
+
+            <Style x:Key="PrimaryButton" TargetType="Button">
+                <Setter Property="Background" Value="{DynamicResource AccentGradientBrush}"/>
+                <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}"/>
+                <Setter Property="FontWeight" Value="SemiBold"/>
+                <Setter Property="Padding" Value="14,7"/>
+                <Setter Property="FontSize" Value="12"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="Template" Value="{StaticResource RoundedButton}"/>
+            </Style>
+
+            <Style x:Key="SecondaryButton" TargetType="Button">
+                <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
+                <Setter Property="Foreground" Value="{DynamicResource FgBrush}"/>
+                <Setter Property="Padding" Value="14,7"/>
+                <Setter Property="FontSize" Value="12"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="Template" Value="{StaticResource RoundedButton}"/>
+            </Style>
+
+            <Style x:Key="Card" TargetType="Border">
+                <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+                <Setter Property="BorderBrush" Value="{DynamicResource StrokeBrush}"/>
+                <Setter Property="BorderThickness" Value="1"/>
+                <Setter Property="CornerRadius" Value="10"/>
+                <Setter Property="Padding" Value="16"/>
+                <Setter Property="Margin" Value="0,0,0,12"/>
+            </Style>
+
+            <Style x:Key="SectionTitle" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="14"/>
+                <Setter Property="FontWeight" Value="SemiBold"/>
+                <Setter Property="Foreground" Value="{DynamicResource FgBrush}"/>
+                <Setter Property="Margin" Value="0,0,0,10"/>
+            </Style>
+
+            <Style x:Key="Hint" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="11"/>
+                <Setter Property="Foreground" Value="{DynamicResource FaintBrush}"/>
+                <Setter Property="TextWrapping" Value="Wrap"/>
+            </Style>
+
+            <!-- 设备项：必须 BasedOn 主题的隐式 CheckBox 样式，
+                 否则局部样式会顶掉主题前景色 → 设备列表文字变黑看不清。 -->
+            <Style x:Key="DeviceItem" TargetType="CheckBox" BasedOn="{StaticResource {x:Type CheckBox}}">
+                <Setter Property="FontSize" Value="12"/>
+                <Setter Property="Margin" Value="0,2,0,2"/>
+                <Setter Property="VerticalContentAlignment" Value="Center"/>
+            </Style>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- 标题 -->
+        <StackPanel Grid.Row="0" Margin="2,0,0,14">
+            <TextBlock Text="设备切换" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource FgBrush}"/>
+            <TextBlock Text="勾选设备设为热键切换范围，热键将在勾选设备间循环切换；点击列表项可切换默认设备"
+                       Style="{StaticResource Hint}" Margin="0,4,0,0"/>
+        </StackPanel>
+
+        <!-- 内容 -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled">
+            <StackPanel>
+
+                <!-- 输出设备 -->
+                <Border Style="{StaticResource Card}">
+                    <StackPanel>
+                        <TextBlock Text="输出设备（播放）" Style="{StaticResource SectionTitle}"/>
+
+                        <!-- 设备列表带复选框 -->
+                        <ListBox x:Name="PlaybackList" PreviewMouseWheel="List_PreviewMouseWheel" MaxHeight="140" Margin="0,0,0,8"
+                                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                 ScrollViewer.VerticalScrollBarVisibility="Auto">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <CheckBox Style="{StaticResource DeviceItem}"
+                                              Content="{Binding Device.Name}"
+                                              IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                              Click="PlaybackDevice_Click"/>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+
+                        <!-- 热键说明 -->
+                        <TextBlock Text="勾选多个设备，热键将在这些设备间循环切换" Style="{StaticResource Hint}" Margin="0,0,0,6"/>
+
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,0">
+                            <Button Content="刷新" Style="{StaticResource SecondaryButton}"
+                                    Click="RefreshDevices_Click"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- 输入设备 -->
+                <Border Style="{StaticResource Card}">
+                    <StackPanel>
+                        <TextBlock Text="输入设备（录音）" Style="{StaticResource SectionTitle}"/>
+
+                        <!-- 设备列表带复选框 -->
+                        <ListBox x:Name="RecordingList" PreviewMouseWheel="List_PreviewMouseWheel" MaxHeight="140" Margin="0,0,0,8"
+                                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                 ScrollViewer.VerticalScrollBarVisibility="Auto">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <CheckBox Style="{StaticResource DeviceItem}"
+                                              Content="{Binding Device.Name}"
+                                              IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                              Click="RecordingDevice_Click"/>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+
+                        <!-- 热键说明 -->
+                        <TextBlock Text="勾选多个设备，热键将在这些设备间循环切换" Style="{StaticResource Hint}" Margin="0,0,0,6"/>
+
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,0">
+                            <Button Content="刷新" Style="{StaticResource SecondaryButton}"
+                                    Click="RefreshDevices_Click"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- 热键 -->
+                <Border Style="{StaticResource Card}">
+                    <StackPanel>
+                        <TextBlock Text="热键切换" Style="{StaticResource SectionTitle}"/>
+
+                        <CheckBox x:Name="PlaybackHotkeyEnabled" Content="启用输出设备切换热键"
+                                  FontSize="12" Margin="0,0,0,6"/>
+                        <TextBox x:Name="PlaybackHotkeyBox" Height="32" FontSize="12"
+                                 Padding="6,0" IsReadOnly="True" IsReadOnlyCaretVisible="False"
+                                 VerticalContentAlignment="Center" HorizontalContentAlignment="Left"
+                                 ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"
+                                 PreviewKeyDown="HotkeyBox_PreviewKeyDown"/>
+
+                        <CheckBox x:Name="RecordingHotkeyEnabled" Content="启用输入设备切换热键"
+                                  FontSize="12" Margin="0,14,0,6"/>
+                        <TextBox x:Name="RecordingHotkeyBox" Height="32" FontSize="12"
+                                 Padding="6,0" IsReadOnly="True" IsReadOnlyCaretVisible="False"
+                                 VerticalContentAlignment="Center" HorizontalContentAlignment="Left"
+                                 ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"
+                                 PreviewKeyDown="HotkeyBox_PreviewKeyDown"/>
+
+                        <TextBlock Style="{StaticResource Hint}" Margin="0,10,0,0"
+                                   Text="点击输入框后直接按下组合键即可录制。热键会在工具箱运行时全局生效（可最小化）。"/>
+                    </StackPanel>
+                </Border>
+
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- 底部按钮 -->
+        <Grid Grid.Row="2" Margin="0,12,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <Button Grid.Column="0" Content="报错/日志" Style="{StaticResource SecondaryButton}"
+                    HorizontalAlignment="Left" Click="CrashReport_Click"/>
+            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                <Button x:Name="SaveButton" Content="保存并应用" Style="{StaticResource PrimaryButton}" Click="Save_Click"/>
+                <Button Content="关闭" Style="{StaticResource SecondaryButton}" Margin="8,0,0,0" Click="Close_Click"/>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Window>

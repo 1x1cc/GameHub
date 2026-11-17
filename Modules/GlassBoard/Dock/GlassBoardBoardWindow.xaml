@@ -1,0 +1,46 @@
+<Window x:Class="GameHub.Modules.GlassBoard.Dock.GlassBoardBoardWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="GlassBoard 应用启动台"
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent"
+        ShowInTaskbar="False" ResizeMode="NoResize"
+        WindowStartupLocation="Manual" SizeToContent="Manual"
+        Opacity="0">
+    <Window.Resources>
+        <!-- 拖动/缩放手柄：原版用 Thumb + GripTemplate，这里给个简洁等价外观 -->
+        <Style x:Key="GripStyle" TargetType="Thumb">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Thumb">
+                        <Border Background="#66FFFFFF" CornerRadius="4"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <!-- 玻璃底板：圆角 42，与原版大面板一致 -->
+        <Border x:Name="Surface" CornerRadius="42" BorderThickness="1"
+                BorderBrush="#5AFFFFFF" Background="#B3181A20">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="26" ShadowDepth="4" Opacity="0.4" Color="#000000"/>
+            </Border.Effect>
+
+            <!-- 内容全部由代码构建（与 Build() 一一对应），这里只留容器 -->
+            <Grid x:Name="ContentGrid"/>
+        </Border>
+
+        <!-- 顶部拖动区 -->
+        <Thumb x:Name="MoveGrip" Style="{StaticResource GripStyle}"
+               Width="60" Height="8" Margin="0,8,0,0"
+               HorizontalAlignment="Center" VerticalAlignment="Top"
+               Cursor="SizeAll" ToolTip="拖动面板位置"/>
+
+        <!-- 右下角缩放区 -->
+        <Thumb x:Name="ResizeGrip" Style="{StaticResource GripStyle}"
+               Width="20" Height="20" Margin="0,0,5,5" Opacity="0.55"
+               HorizontalAlignment="Right" VerticalAlignment="Bottom"
+               Cursor="SizeNWSE" ToolTip="拖动调整面板大小"/>
+    </Grid>
+</Window>

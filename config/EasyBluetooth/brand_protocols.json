@@ -1,0 +1,572 @@
+[
+  {
+    "brand": "Xinmeng",
+    "plugin_id": "ninjutso-2.4g-plugin",
+    "ns": "H",
+    "provider": "u",
+    "plugin_line": 105310,
+    "provider_line": 104802,
+    "byte_frames": []
+  },
+  {
+    "brand": "Xiaomi",
+    "plugin_id": "mision-2.4g-plugin",
+    "ns": "H",
+    "provider": "v",
+    "plugin_line": 106964,
+    "provider_line": 105580,
+    "byte_frames": []
+  },
+  {
+    "brand": "WanlingJingji",
+    "plugin_id": "wanling-jingji-2.4g-plugin",
+    "ns": "H",
+    "provider": "w",
+    "plugin_line": 108520,
+    "provider_line": 107542,
+    "byte_frames": []
+  },
+  {
+    "brand": "Vaxee",
+    "plugin_id": "aula-2.4g-plugin",
+    "ns": "H",
+    "provider": "x",
+    "plugin_line": 109697,
+    "provider_line": 108771,
+    "byte_frames": []
+  },
+  {
+    "brand": "Valkyrie",
+    "plugin_id": "valkyrie-2.4g-plugin",
+    "ns": "H",
+    "provider": "y",
+    "plugin_line": 110935,
+    "provider_line": 109786,
+    "byte_frames": []
+  },
+  {
+    "brand": "TurtleBeach",
+    "plugin_id": "jingzao-2.4g-plugin",
+    "ns": "h",
+    "provider": "B",
+    "plugin_line": 112260,
+    "provider_line": 111313,
+    "byte_frames": []
+  },
+  {
+    "brand": "Togar",
+    "plugin_id": "togar-2.4g-plugin",
+    "ns": "h",
+    "provider": "c",
+    "plugin_line": 113662,
+    "provider_line": 112816,
+    "byte_frames": []
+  },
+  {
+    "brand": "SteelSeries",
+    "plugin_id": "steelseries-2.4g-plugin",
+    "ns": "h",
+    "provider": "E",
+    "plugin_line": 115717,
+    "provider_line": 113770,
+    "byte_frames": []
+  },
+  {
+    "brand": "Steam",
+    "plugin_id": "steam-2.4g-plugin",
+    "ns": "h",
+    "provider": "F",
+    "plugin_line": 116859,
+    "provider_line": 116131,
+    "byte_frames": []
+  },
+  {
+    "brand": "Sony",
+    "plugin_id": "atk-hid-plugin",
+    "ns": "h",
+    "provider": "G",
+    "plugin_line": 121094,
+    "provider_line": 117432,
+    "byte_frames": []
+  },
+  {
+    "brand": "Scyrox",
+    "plugin_id": "cherry-2.4g-plugin",
+    "ns": "h",
+    "provider": "M",
+    "plugin_line": 122735,
+    "provider_line": 122305,
+    "byte_frames": []
+  },
+  {
+    "brand": "Royalaxe",
+    "plugin_id": "ajazz-2.4g-plugin",
+    "ns": "h",
+    "provider": "N",
+    "plugin_line": 124003,
+    "provider_line": 122857,
+    "byte_frames": []
+  },
+  {
+    "brand": "Rog",
+    "plugin_id": "rog-2.4g-plugin",
+    "ns": "h",
+    "provider": "O",
+    "plugin_line": 127033,
+    "provider_line": 124476,
+    "byte_frames": []
+  },
+  {
+    "brand": "Roccat",
+    "plugin_id": "rawm-2.4g-plugin",
+    "ns": "h",
+    "provider": "P",
+    "plugin_line": 128886,
+    "provider_line": 127858,
+    "byte_frames": []
+  },
+  {
+    "brand": "Redragon",
+    "plugin_id": "bose-bluetooth-plugin",
+    "ns": "h",
+    "provider": "Q",
+    "plugin_line": 130356,
+    "provider_line": 129548,
+    "byte_frames": []
+  },
+  {
+    "brand": "Razer",
+    "plugin_id": "finalmouse-2.4g-plugin",
+    "ns": "h",
+    "provider": "t",
+    "plugin_line": 136415,
+    "provider_line": 133093,
+    "byte_frames": []
+  },
+  {
+    "brand": "Rawm",
+    "plugin_id": "rawm-2.4g-plugin",
+    "ns": "I",
+    "provider": "P",
+    "plugin_line": 143253,
+    "provider_line": 141399,
+    "byte_frames": []
+  },
+  {
+    "brand": "Rapoo",
+    "plugin_id": "acer-2.4g-plugin",
+    "ns": "I",
+    "provider": "q",
+    "plugin_line": 145246,
+    "provider_line": 144333,
+    "byte_frames": []
+  },
+  {
+    "brand": "Pulsar",
+    "plugin_id": "flydigi-2.4g-plugin",
+    "ns": "I",
+    "provider": "r",
+    "plugin_line": 146498,
+    "provider_line": 145284,
+    "byte_frames": []
+  },
+  {
+    "brand": "Pmo",
+    "plugin_id": "pmo-2.4g-plugin",
+    "ns": "I",
+    "provider": "t",
+    "plugin_line": 148382,
+    "provider_line": 146717,
+    "byte_frames": []
+  },
+  {
+    "brand": "Ninjutso",
+    "plugin_id": "ninjutso-2.4g-plugin",
+    "ns": "I",
+    "provider": "u",
+    "plugin_line": 149595,
+    "provider_line": 148421,
+    "byte_frames": []
+  },
+  {
+    "brand": "Mision",
+    "plugin_id": "mision-2.4g-plugin",
+    "ns": "I",
+    "provider": "v",
+    "plugin_line": 149873,
+    "provider_line": 149638,
+    "byte_frames": []
+  },
+  {
+    "brand": "Mchose",
+    "plugin_id": "mchose-2.4g-plugin",
+    "ns": "I",
+    "provider": "X",
+    "plugin_line": 154208,
+    "provider_line": 151320,
+    "byte_frames": []
+  },
+  {
+    "brand": "Maono",
+    "plugin_id": "lenovo-2.4g-plugin",
+    "ns": "I",
+    "provider": "Y",
+    "plugin_line": 156261,
+    "provider_line": 155149,
+    "byte_frames": []
+  },
+  {
+    "brand": "Lunafury",
+    "plugin_id": "langtu-2.4g-plugin",
+    "ns": "I",
+    "provider": "Z",
+    "plugin_line": 157937,
+    "provider_line": 156829,
+    "byte_frames": []
+  },
+  {
+    "brand": "Logitech",
+    "plugin_id": "jbl-2.4g-plugin",
+    "ns": "i",
+    "provider": "C",
+    "plugin_line": 160449,
+    "provider_line": 159753,
+    "byte_frames": []
+  },
+  {
+    "brand": "Leobog",
+    "plugin_id": "finalmouse-2.4g-plugin",
+    "ns": "i",
+    "provider": "W",
+    "plugin_line": 166076,
+    "provider_line": 164817,
+    "byte_frames": []
+  },
+  {
+    "brand": "Lenovo",
+    "plugin_id": "lenovo-2.4g-plugin",
+    "ns": "i",
+    "provider": "x",
+    "plugin_line": 167746,
+    "provider_line": 166493,
+    "byte_frames": []
+  },
+  {
+    "brand": "Langtu",
+    "plugin_id": "langtu-2.4g-plugin",
+    "ns": "i",
+    "provider": "Z",
+    "plugin_line": 168525,
+    "provider_line": 167960,
+    "byte_frames": []
+  },
+  {
+    "brand": "Lamzu",
+    "plugin_id": "lamzu-2.4g-plugin",
+    "ns": "J",
+    "provider": "A",
+    "plugin_line": 170374,
+    "provider_line": 169199,
+    "byte_frames": []
+  },
+  {
+    "brand": "JingZao",
+    "plugin_id": "jingzao-2.4g-plugin",
+    "ns": "J",
+    "provider": "B",
+    "plugin_line": 171459,
+    "provider_line": 169496,
+    "byte_frames": []
+  },
+  {
+    "brand": "Jbl",
+    "plugin_id": "jbl-2.4g-plugin",
+    "ns": "J",
+    "provider": "C",
+    "plugin_line": 172344,
+    "provider_line": 171538,
+    "byte_frames": []
+  },
+  {
+    "brand": "Inphic",
+    "plugin_id": "inphic-2.4g-plugin",
+    "ns": "J",
+    "provider": "D",
+    "plugin_line": 173721,
+    "provider_line": 172663,
+    "byte_frames": []
+  },
+  {
+    "brand": "Incott",
+    "plugin_id": "edifier-2.4g-plugin",
+    "ns": "J",
+    "provider": "e",
+    "plugin_line": 175394,
+    "provider_line": 174045,
+    "byte_frames": []
+  },
+  {
+    "brand": "HyperX",
+    "plugin_id": "audeze-2.4g-plugin",
+    "ns": "J",
+    "provider": "f",
+    "plugin_line": 177335,
+    "provider_line": 175807,
+    "byte_frames": []
+  },
+  {
+    "brand": "Hp",
+    "plugin_id": "darmoshark-2.4g-plugin",
+    "ns": "J",
+    "provider": "g",
+    "plugin_line": 178186,
+    "provider_line": 177381,
+    "byte_frames": []
+  },
+  {
+    "brand": "GWolves",
+    "plugin_id": "g-wolves-2.4g-plugin",
+    "ns": "J",
+    "provider": "h",
+    "plugin_line": 179816,
+    "provider_line": 178267,
+    "byte_frames": []
+  },
+  {
+    "brand": "Glorious",
+    "plugin_id": "atk-hid-plugin",
+    "ns": "J",
+    "provider": "j",
+    "plugin_line": 181097,
+    "provider_line": 179978,
+    "byte_frames": []
+  },
+  {
+    "brand": "Ganss",
+    "plugin_id": "antgamer-2.4g-plugin",
+    "ns": "J",
+    "provider": "k",
+    "plugin_line": 182558,
+    "provider_line": 181198,
+    "byte_frames": []
+  },
+  {
+    "brand": "Gamesir",
+    "plugin_id": "gamesir-2.4g-plugin",
+    "ns": "J",
+    "provider": null,
+    "plugin_line": 186823
+  },
+  {
+    "brand": "Fractal",
+    "plugin_id": "acer-2.4g-plugin",
+    "ns": "J",
+    "provider": "q",
+    "plugin_line": 188467,
+    "provider_line": 187788,
+    "byte_frames": []
+  },
+  {
+    "brand": "Flydigi",
+    "plugin_id": "flydigi-2.4g-plugin",
+    "ns": "J",
+    "provider": "r",
+    "plugin_line": 189870,
+    "provider_line": 188505,
+    "byte_frames": []
+  },
+  {
+    "brand": "Flesports",
+    "plugin_id": "betop-2.4g-plugin",
+    "ns": "J",
+    "provider": "V",
+    "plugin_line": 192191,
+    "provider_line": 191245,
+    "byte_frames": []
+  },
+  {
+    "brand": "Finalmouse",
+    "plugin_id": "finalmouse-2.4g-plugin",
+    "ns": "J",
+    "provider": "W",
+    "plugin_line": 193568,
+    "provider_line": 192649,
+    "byte_frames": []
+  },
+  {
+    "brand": "Eweadn",
+    "plugin_id": "aula-2.4g-plugin",
+    "ns": "J",
+    "provider": "x",
+    "plugin_line": 196061,
+    "provider_line": 194953,
+    "byte_frames": []
+  },
+  {
+    "brand": "Epos",
+    "plugin_id": "epos-2.4g-plugin",
+    "ns": "j",
+    "provider": null,
+    "plugin_line": 198657
+  },
+  {
+    "brand": "Edifier",
+    "plugin_id": "edifier-2.4g-plugin",
+    "ns": "j",
+    "provider": "e",
+    "plugin_line": 200184,
+    "provider_line": 198793,
+    "byte_frames": []
+  },
+  {
+    "brand": "Delux",
+    "plugin_id": "audeze-2.4g-plugin",
+    "ns": "j",
+    "provider": "f",
+    "plugin_line": 203281,
+    "provider_line": 200439,
+    "byte_frames": []
+  },
+  {
+    "brand": "DarmoShark",
+    "plugin_id": "darmoshark-2.4g-plugin",
+    "ns": "j",
+    "provider": "g",
+    "plugin_line": 205049,
+    "provider_line": 204027,
+    "byte_frames": []
+  },
+  {
+    "brand": "Dareu",
+    "plugin_id": "dareu-2.4g-plugin",
+    "ns": "j",
+    "provider": "I",
+    "plugin_line": 206970,
+    "provider_line": 205518,
+    "byte_frames": []
+  },
+  {
+    "brand": "Corsair",
+    "plugin_id": "corsair-2.4g-plugin",
+    "ns": "j",
+    "provider": "K",
+    "plugin_line": 208684,
+    "provider_line": 207748,
+    "byte_frames": []
+  },
+  {
+    "brand": "CoolerMaster",
+    "plugin_id": "coolermaster-2.4g-plugin",
+    "ns": "j",
+    "provider": "L",
+    "plugin_line": 209738,
+    "provider_line": 209329,
+    "byte_frames": []
+  },
+  {
+    "brand": "Cherry",
+    "plugin_id": "cherry-2.4g-plugin",
+    "ns": "j",
+    "provider": "M",
+    "plugin_line": 210989,
+    "provider_line": 209891,
+    "byte_frames": []
+  },
+  {
+    "brand": "Bose",
+    "plugin_id": "bose-bluetooth-plugin",
+    "ns": "j",
+    "provider": null,
+    "plugin_line": 212247
+  },
+  {
+    "brand": "Bloody",
+    "plugin_id": "bloody-2.4g-plugin",
+    "ns": "j",
+    "provider": "s",
+    "plugin_line": 213595,
+    "provider_line": 212566,
+    "byte_frames": []
+  },
+  {
+    "brand": "BitDo",
+    "plugin_id": "8bitdo-2.4g-plugin",
+    "ns": "j",
+    "provider": "U",
+    "plugin_line": 214398,
+    "provider_line": 214000,
+    "byte_frames": []
+  },
+  {
+    "brand": "Betop",
+    "plugin_id": "betop-2.4g-plugin",
+    "ns": "j",
+    "provider": "V",
+    "plugin_line": 215712,
+    "provider_line": 214577,
+    "byte_frames": []
+  },
+  {
+    "brand": "Aula",
+    "plugin_id": "aula-2.4g-plugin",
+    "ns": "j",
+    "provider": "x",
+    "plugin_line": 219178,
+    "provider_line": 216522,
+    "byte_frames": []
+  },
+  {
+    "brand": "Audeze",
+    "plugin_id": "audeze-2.4g-plugin",
+    "ns": "K",
+    "provider": "B",
+    "plugin_line": 220831,
+    "provider_line": 219856,
+    "byte_frames": []
+  },
+  {
+    "brand": "Atk",
+    "plugin_id": "atk-hid-plugin",
+    "ns": "K",
+    "provider": "g",
+    "plugin_line": 225269,
+    "provider_line": 221009,
+    "byte_frames": []
+  },
+  {
+    "brand": "Antgamer",
+    "plugin_id": "antgamer-2.4g-plugin",
+    "ns": "K",
+    "provider": "k",
+    "plugin_line": 226614,
+    "provider_line": 226049,
+    "byte_frames": []
+  },
+  {
+    "brand": "AngryMiao",
+    "plugin_id": "angrymiao-2.4g-plugin",
+    "ns": "K",
+    "provider": "l",
+    "plugin_line": 228265,
+    "provider_line": 226806,
+    "byte_frames": []
+  },
+  {
+    "brand": "Ajazz",
+    "plugin_id": "ajazz-2.4g-plugin",
+    "ns": "K",
+    "provider": "N",
+    "plugin_line": 230066,
+    "provider_line": 228709,
+    "byte_frames": []
+  },
+  {
+    "brand": "Acer",
+    "plugin_id": "acer-2.4g-plugin",
+    "ns": "K",
+    "provider": "O",
+    "plugin_line": 232111,
+    "provider_line": 230311,
+    "byte_frames": []
+  }
+]

@@ -1,0 +1,868 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Threading;
+using GameHub.Modules.AudioPlaybackConnector;
+using GameHub.Modules.Dronesee;
+using GameHub.Modules.SoundSwitch;
+using GameHub.Utils;
+using GameHub.ViewModels;
+
+namespace GameHub.Views
+{
+    public partial class MainWindow : Window
+    {
+        private readonly List<ModuleCardViewModel> _moduleViewModels = new();
+        private readonly HotkeyManager _hotkeyManager = new();
+        private ModuleSettings _settings = SettingsStore.Load();
+        private readonly SoundSwitchModule _soundSwitchModule = new();
+
+        /// <summary>系统托盘图标（"最小化到托盘"后用它恢复窗口/退出程序）。</summary>
+        private TrayIconManager? _tray;
+
+        /// <summary>是否已确认真正退出：为 true 时 OnClosing 不再拦截。</summary>
+        private bool _allowClose;
+
+        /// <summary>“已最小化到托盘”的提示每次运行只弹一次，避免每次关闭都打扰。</summary>
+        private bool _trayTipShown;
+
+        /// <summary>
+        /// true：本次由“开机自启动”拉起，主窗口初始化完成后只驻留托盘、不显示界面。
+        /// 由 App 在 Show() 之前设置（见 App.CreateMainWindow）。
+        /// </summary>
+        public bool StartHiddenToTray { get; set; }
+
+        public MainWindow()
+        {
+            InitializeComponent();
+            Loaded += OnLoaded;
+            Closed += OnClosed;
+
+            // 系统关机/注销时要直接退出，不能把窗口藏起来当"最小化到托盘"，
+            // 否则会拦住系统的关机流程。
+            if (Application.Current != null)
+                Application.Current.SessionEnding += (_, _) => _allowClose = true;
+        }
+
+        private async void OnLoaded(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                LoadModules();
+
+                // 桌面美化（GlassBoard）兜底：上次隐藏后若程序异常退出（没来得及还原），
+                // 这里按记录把任务栏 / 桌面图标显示回来，避免一直藏在外面上不了手。
+                RecoverGlassBoardShellState();
+
+                // 再按上次记录重新生效：总开关状态与桌面时钟都是“跨次记忆”的
+                Modules.GlassBoard.GlassBoardModule.ApplyPersistedState();
+
+                UpdateHubAutoStartButton();
+                RegisterHotkeys();
+                NotificationManager.Initialize();
+                InitializeTrayIcon();
+
+                // 若设置里开着即时重放，启动时就拉起后台缓冲
+                Modules.Dronesee.DroneseeModule.ApplyReplayBufferState();
+
+                // Pavise 由 GameHub 托管：随主界面一起拉起（隐藏运行、无托盘图标），退出时随 GameHub 收掉。
+                if (SettingsStore.Load().Pavise?.StartWithHub != false)
+                    Modules.Pavise.PaviseModule.StartWithHub();
+
+                await RefreshAllAsync();
+                LogMessage("主窗口加载完成");
+
+                if (StartHiddenToTray)
+                    HideToTrayAfterAutoStart();
+            }
+            catch (Exception ex)
+            {
+                LogMessage($"主窗口加载异常：{ex.GetType().Name}: {ex.Message}");
+                LogMessage($"堆栈：{ex.StackTrace}");
+            }
+        }
+
+        /// <summary>
+        /// 开机自启动时，初始化完成后把主窗口藏进系统托盘。
+        ///
+        /// App 为了让启动过程完全不可见，会先把 Opacity 设为 0；这里无论走哪条分支
+        /// 都要把它恢复，否则用户从托盘唤回窗口时看到的会是一个“透明”窗口。
+        /// </summary>
+        private void HideToTrayAfterAutoStart()
+        {
+            Opacity = 1;
+            ShowInTaskbar = true;
+
+            if (_tray?.IsReady != true)
+            {
+                // 没有托盘图标就绝不能把窗口藏起来，否则用户根本找不到程序
+                LogMessage("开机自启动：托盘图标不可用，保持主窗口显示");
+                Activate();
+                return;
+            }
+
+            Hide();
+            _trayTipShown = true;
+
+            LogMessage("开机自启动：已自动最小化到托盘，程序在后台运行（热键仍然生效）");
+            _tray.ShowBalloon("GameHub 已在后台运行", "双击托盘图标可以打开主界面");
+        }
+
+        // ---------- 模块 ----------
+
+        private void LoadModules()
+        {
+            var modules = new List<Interfaces.IModule>
+            {
+                new SoundSwitchModule(),
+                new AudioPlaybackConnectorModule(),
+
+                // 第三个卡片：无线设备电量（EasyBluetooth）。
+                // UniformGrid 两列布局下它会自然排在第一行左侧卡片的下面。
+                new Modules.EasyBluetooth.EasyBluetoothModule(),
+
+                // 第四个卡片：游戏视频录制与即时重放（Dronesee）。
+                new Modules.Dronesee.DroneseeModule(),
+
+                // 第五个卡片：Pavise（后台压制与调度优化，由 GameHub 托管）。
+                // 界面仍用 Pavise 自己的面板（与上游一致），但入口 / 生命周期 / 开机自启由 GameHub 统一控制。
+                new Modules.Pavise.PaviseModule(),
+
+                // 第六个卡片：桌面美化工具（GlassBoard）。
+                // 机制取自 SENLIN-SAMA/win-.- 的反编译源码，在 GameHub 内用 Win32 重写。
+                new Modules.GlassBoard.GlassBoardModule()
+            };
+
+            _moduleViewModels.Clear();
+            foreach (var module in modules)
+            {
+                _moduleViewModels.Add(new ModuleCardViewModel(module));
+            }
+
+            ModulesList.ItemsSource = _moduleViewModels;
+        }
+
+        /// <summary>
+        /// 桌面美化兜底：上次运行隐藏了任务栏 / 桌面图标但没正常退出时，
+        /// 按写下的恢复记录把窗口还原回去。
+        /// </summary>
+        private void RecoverGlassBoardShellState()
+        {
+            try
+            {
+                Modules.GlassBoard.DesktopVisibility.Recover();
+            }
+            catch (Exception ex)
+            {
+                LogMessage($"GlassBoard：启动还原桌面状态失败：{ex.GetType().Name}: {ex.Message}");
+            }
+
+            // 还原成“原始状态”之后，再按上次用户选择的显隐（任务栏 / 桌面图标）重放一遍，
+            // 否则下次自启永远是“显示”状态 —— 用户反馈的“显示隐藏任务栏没办法记忆”。
+            try
+            {
+                Modules.GlassBoard.DesktopVisibility.ReplayDesired();
+            }
+            catch (Exception ex)
+            {
+                LogMessage($"GlassBoard：恢复上次任务栏/图标显隐失败：{ex.GetType().Name}: {ex.Message}");
+            }
+
+            try
+            {
+                Modules.GlassBoard.TaskbarAutoHide.Restore();
+            }
+            catch (Exception ex)
+            {
+                LogMessage($"GlassBoard：启动还原任务栏自动隐藏失败：{ex.GetType().Name}: {ex.Message}");
+            }
+        }
+
+        private async System.Threading.Tasks.Task RefreshAllAsync()
+        {
+            foreach (var vm in _moduleViewModels)
+                await vm.RefreshStatusAsync();
+        }
+
+        private async void Refresh_Click(object sender, RoutedEventArgs e)
+        {
+            await RefreshAllAsync();
+        }
+
+        /// <summary>打开"诊断报告 / 报错"窗口，帮助用户一键取日志。</summary>
+        private void CrashReport_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var window = new CrashReportWindow { Owner = this };
+                window.ShowDialog();
+            }
+            catch (Exception ex)
+            {
+                LogMessage($"打开诊断报告窗口异常：{ex.GetType().Name}: {ex.Message}");
+                MessageBox.Show("打开诊断报告窗口失败：" + ex.Message, "GameHub",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+        }
+
+        /// <summary>点击卡片非按钮区域 → 打开该模块的内置功能面板。</summary>
+        private void ModuleCard_Click(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is Border border && border.DataContext is ModuleCardViewModel vm)
+            {
+                // 第 3 条：记下卡片矩形，模块窗口首次显示时用它播「卡片 → 详情页」共享元素转场
+                GameHub.Controls.SharedTransition.Capture(border);
+                vm.OpenPanelCommand.Execute(null);
+            }
+        }
+
+        // ---------- 工具箱自身的自启动 ----------
+
+        private void UpdateHubAutoStartButton()
+        {
+            bool enabled = AutoStartManager.IsEnabled();
+            bool ready = AutoStartManager.IsReady();
+
+            HubAutoStartButton.Content = enabled ? "开机自启动 on" : "开机自启动 off";
+
+            // 颜色表示“到底能不能用”，不是 hover（深色主题配色）：
+            //   暗灰=未开启；强调绿=已开启且注册正常；琥珀=已开启但（路径失效/被系统禁用）开机不会生效
+            if (!enabled)
+            {
+                HubAutoStartButton.SetResourceReference(Control.BackgroundProperty, "TrackOffBrush");
+                HubAutoStartButton.SetResourceReference(Control.ForegroundProperty, "FgBrush");
+            }
+            else if (ready)
+            {
+                HubAutoStartButton.SetResourceReference(Control.BackgroundProperty, "AccentBrush");
+                HubAutoStartButton.SetResourceReference(Control.ForegroundProperty, "OnAccentBrush");
+            }
+            else
+            {
+                HubAutoStartButton.SetResourceReference(Control.BackgroundProperty, "WarningBrush");
+                HubAutoStartButton.SetResourceReference(Control.ForegroundProperty, "OnAccentBrush");
+            }
+
+            // 悬停即可看到注册表里的真实状态，不用再去翻注册表
+            HubAutoStartButton.ToolTip = AutoStartManager.GetStatusReport();
+
+            // 第 6 条：主题切换按钮的图标与当前模式保持一致
+            UpdateThemeToggleIcon();
+        }
+
+        /// <summary>让主题切换按钮的图标与当前模式一致（第 6 条）。</summary>
+        private void UpdateThemeToggleIcon()
+        {
+            if (ThemeIcon == null)
+                return;
+
+            ThemeIcon.Text = ThemeManager.IsLight ? "☾" : "☀";
+        }
+
+        /// <summary>第 6 条：太阳 ⟷ 月亮切换昼夜；图标旋转，配色以按钮为圆心扩散。</summary>
+        private void ThemeToggle_Click(object sender, RoutedEventArgs e)
+        {
+            bool light = !ThemeManager.IsLight;
+
+            // 图标旋转：先转半圈，转到一半时把太阳换成月亮，再转完剩下半圈
+            try
+            {
+                var spin = new System.Windows.Media.Animation.DoubleAnimation(
+                    ThemeIconRotation.Angle, ThemeIconRotation.Angle + 180, TimeSpan.FromMilliseconds(220));
+                spin.Completed += (_, __) =>
+                {
+                    ThemeIcon.Text = light ? "☾" : "☀";
+                    ThemeIconRotation.BeginAnimation(RotateTransform.AngleProperty,
+                        new System.Windows.Media.Animation.DoubleAnimation(
+                            ThemeIconRotation.Angle + 180, ThemeIconRotation.Angle + 360, TimeSpan.FromMilliseconds(220)));
+                };
+                ThemeIconRotation.BeginAnimation(RotateTransform.AngleProperty, spin);
+            }
+            catch
+            {
+                // 动画失败不影响换肤
+            }
+
+            // 换肤 + 以按钮为圆心的扩散过渡
+            GameHub.Controls.ThemeReveal.PlayWith(this, ThemeToggleButton, () =>
+            {
+                ThemeManager.Apply(light, ThemeManager.CurrentAccentHex);
+
+                var settings = SettingsStore.Load();
+                settings.ThemeLight = light;
+                settings.ThemeAccent = ThemeManager.CurrentAccentHex;
+                SettingsStore.Save(settings);
+
+                AppLog.Write($"主窗口：主题已切换 light={light} accent={ThemeManager.CurrentAccentHex}");
+            });
+        }
+
+        private async void HubAutoStart_Click(object sender, RoutedEventArgs e)
+        {
+            HubAutoStartButton.IsEnabled = false;
+            try
+            {
+                // 异步执行注册表操作，避免阻塞 UI 线程
+                await Task.Run(() => AutoStartManager.Toggle());
+                UpdateHubAutoStartButton();
+
+                if (AutoStartManager.IsEnabled() && !AutoStartManager.IsReady())
+                {
+                    // 注册表写进去了但系统层面不会执行：必须明确告知，
+                    // 否则又会出现“开关是 on、开机却没反应”这种最容易被误解的状态。
+                    LogMessage($"开机自启动：开启后自检未通过\n{AutoStartManager.GetStatusReport()}");
+                    NotificationManager.ShowInfo("开机自启动可能不会生效", AutoStartManager.GetStatusSummary());
+                }
+                else if (AutoStartManager.IsEnabled())
+                {
+                    NotificationManager.ShowInfo("已开启开机自启动",
+                        "下次登录 Windows 时 GameHub 会在后台启动并最小化到托盘");
+                }
+                else
+                {
+                    NotificationManager.ShowInfo("已关闭开机自启动", "登录 Windows 后不再自动启动 GameHub");
+                }
+            }
+            finally
+            {
+                HubAutoStartButton.IsEnabled = true;
+            }
+        }
+
+        // ---------- 热键 ----------
+
+        private void RegisterHotkeys()
+        {
+            if (!_hotkeyManager.Attach(this))
+            {
+                LogMessage("热键注册失败：窗口句柄未就绪");
+                return;
+            }
+
+            _settings = SettingsStore.Load();
+            LogMessage($"设置加载：蓝牙暂停热键={_settings.BluetoothAudioPauseHotkey}({_settings.BluetoothAudioPauseHotkeyEnabled})");
+            RegisterHotkeysFromSettings();
+            LogMessage($"热键注册完成：输出={_settings.PlaybackHotkey}({_settings.PlaybackHotkeyEnabled}), 输入={_settings.RecordingHotkey}({_settings.RecordingHotkeyEnabled}), 蓝牙={_settings.BluetoothAudioPauseHotkey}({_settings.BluetoothAudioPauseHotkeyEnabled})");
+        }
+
+        /// <summary>根据当前设置重新注册热键（设置窗口保存后调用）。</summary>
+        public void ReloadHotkeys()
+        {
+            _hotkeyManager.UnregisterAll();
+            _settings = SettingsStore.Load();
+            RegisterHotkeysFromSettings();
+        }
+
+        private void RegisterHotkeysFromSettings()
+        {
+            // 注册失败（例如热键被其它程序占用）必须记入日志，
+            // 旧实现用 out _ 丢弃了错误，导致按了没反应也无从查起。
+            if (_settings.PlaybackHotkeyEnabled)
+            {
+                bool ok = _hotkeyManager.Register(_settings.PlaybackHotkey, WrapCallback(
+                    () => SwitchDevice(AudioFlow.Playback, _settings.HotkeyTargetPlaybackDeviceIds)), out string playbackError);
+                if (!ok)
+                    LogMessage($"输出热键注册失败：{_settings.PlaybackHotkey}（{playbackError}）");
+            }
+
+            if (_settings.RecordingHotkeyEnabled)
+            {
+                bool ok = _hotkeyManager.Register(_settings.RecordingHotkey, WrapCallback(
+                    () => SwitchDevice(AudioFlow.Recording, _settings.HotkeyTargetRecordingDeviceIds)), out string recordingError);
+                if (!ok)
+                    LogMessage($"输入热键注册失败：{_settings.RecordingHotkey}（{recordingError}）");
+            }
+
+            if (_settings.BluetoothAudioPauseHotkeyEnabled)
+            {
+                bool ok = _hotkeyManager.Register(_settings.BluetoothAudioPauseHotkey, WrapCallback(
+                    ToggleBluetoothAudioPlayback), out string btError);
+                if (!ok)
+                    LogMessage($"蓝牙音频暂停热键注册失败：{_settings.BluetoothAudioPauseHotkey}（{btError}）");
+            }
+
+            // Dronesee 热键：录制
+            if (_settings.Dronesee.RecordHotkeyEnabled)
+            {
+                bool ok = _hotkeyManager.Register(_settings.Dronesee.RecordHotkey, WrapCallback(
+                    ToggleDroneseeRecording), out string recordError);
+                if (!ok)
+                    LogMessage($"Dronesee 录制热键注册失败：{_settings.Dronesee.RecordHotkey}（{recordError}）");
+            }
+
+            // Dronesee 热键：即时重放
+            if (_settings.Dronesee.ReplayHotkeyEnabled)
+            {
+                bool ok = _hotkeyManager.Register(_settings.Dronesee.ReplayHotkey, WrapCallback(
+                    SaveDroneseeReplayClip), out string replayError);
+                if (!ok)
+                    LogMessage($"Dronesee 即时重放热键注册失败：{_settings.Dronesee.ReplayHotkey}（{replayError}）");
+            }
+        }
+
+        /// <summary>
+        /// 切换设备：在勾选的设备间循环切换，如果没有勾选则循环所有设备。
+        /// 使用 BeginInvoke 异步执行，避免后台线程阻塞 UI。
+        /// 添加 UI 线程检查，避免窗口关闭后访问已销毁的 UI 线程。
+        /// </summary>
+        private void SwitchDevice(AudioFlow flow, List<string> targetIds)
+        {
+            // 检查 UI 线程是否仍然活跃
+            if (Application.Current?.Dispatcher?.CheckAccess() == false)
+            {
+                // UI 线程不可用，直接返回
+                LogMessage($"热键切换失败：UI 线程不可用");
+                return;
+            }
+
+            // 异步提交到 UI 线程，不阻塞热键线程
+            Application.Current?.Dispatcher?.BeginInvoke(() =>
+            {
+                // 再次检查 UI 线程是否仍然活跃
+                if (Application.Current?.Dispatcher?.CheckAccess() == false)
+                {
+                    LogMessage($"热键切换失败：UI 线程已销毁");
+                    return;
+                }
+
+                try
+                {
+                    var devices = AudioDeviceService.GetDevices(flow);
+                    string? nextDeviceName = null;
+                    string? failureReason = null;
+
+                    AppLog.Write($"热键切换开始：{flow}，勾选目标数={targetIds?.Count ?? 0}，当前在线设备数={devices.Count}");
+
+                    // 如果有勾选的设备，在这些设备间切换
+                    if (targetIds != null && targetIds.Count > 0)
+                    {
+                        // 按 targetIds 的固定顺序构建 filteredDevices（避免 IsDefault 变化导致顺序混乱）
+                        // 用 OfType 而不是 Where(d => d != null)：既把 null 过滤掉，
+                        // 又把元素静态类型变成非空（否则下面每处解引用都会报 CS8602）
+                        var filteredDevices = targetIds
+                            .Select(id => devices.FirstOrDefault(d => d.Id == id))
+                            .OfType<AudioDeviceInfo>()
+                            .ToList();
+
+                        // 勾选了但当前不在线的设备（拔掉/未插入）—— 记录下来，避免误以为勾选没生效
+                        int offlineCount = targetIds.Count - filteredDevices.Count;
+                        if (offlineCount > 0)
+                        {
+                            LogMessage($"热键切换：勾选 {targetIds.Count} 个设备，其中 {offlineCount} 个当前不在线，本次参与循环 {filteredDevices.Count} 个");
+                        }
+
+                        if (filteredDevices.Count > 1)
+                        {
+                            // 找到当前默认设备在 filteredDevices 中的索引
+                            var currentDevice = devices.Find(d => d.IsDefault);
+                            int currentIndex = filteredDevices.FindIndex(d => d.Id == currentDevice?.Id);
+                            // 如果当前默认设备不在筛选列表中，从第一个开始
+                            if (currentIndex < 0) currentIndex = 0;
+
+                            // 循环到下一个设备
+                            int nextIndex = (currentIndex + 1) % filteredDevices.Count;
+                            var nextDevice = filteredDevices[nextIndex];
+
+                            AppLog.Write($"热键切换[{flow}]：当前默认={currentDevice?.Name}({currentDevice?.Id})，当前索引={currentIndex}，下一个={nextDevice.Name}({nextDevice.Id})");
+
+                            // 执行切换
+                            if (AudioDeviceService.SetDefaultDevice(nextDevice.Id))
+                                nextDeviceName = nextDevice.Name;
+                            else
+                                failureReason = $"设置默认设备失败：{nextDevice.Name}";
+                        }
+                        else if (filteredDevices.Count == 1)
+                        {
+                            // 只有一个勾选设备，切换回当前默认（如果不是它）
+                            var currentDevice = devices.Find(d => d.IsDefault);
+                            AppLog.Write($"热键切换[{flow}]：仅一个勾选设备 {filteredDevices[0].Name}({filteredDevices[0].Id})，当前默认={currentDevice?.Name}({currentDevice?.Id})");
+                            if (currentDevice != null && currentDevice.Id != filteredDevices[0].Id)
+                            {
+                                if (AudioDeviceService.SetDefaultDevice(filteredDevices[0].Id))
+                                    nextDeviceName = filteredDevices[0].Name;
+                                else
+                                    failureReason = $"设置默认设备失败：{filteredDevices[0].Name}";
+                            }
+                        }
+                    }
+
+                    // 如果没有勾选设备，循环所有设备
+                    if (nextDeviceName == null && failureReason == null)
+                    {
+                        var device = AudioDeviceService.SwitchToNext(flow);
+                        if (device != null)
+                            nextDeviceName = device.Name;
+                        else
+                            failureReason = devices.Count == 0 ? "未找到可用设备" : "切换默认设备失败";
+                    }
+
+                    // 显示通知（UI 线程）
+                    if (nextDeviceName != null)
+                    {
+                        LogMessage($"热键切换成功：{flow} -> {nextDeviceName}");
+                        NotificationManager.ShowDeviceNotification(
+                            flow == AudioFlow.Playback ? "输出" : "输入", nextDeviceName);
+                    }
+                    else
+                    {
+                        LogMessage($"热键切换失败：{failureReason}");
+                        NotificationManager.ShowDeviceNotification(
+                            flow == AudioFlow.Playback ? "输出" : "输入", failureReason ?? "切换失败");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    LogMessage($"热键切换异常：{ex.GetType().Name}: {ex.Message}");
+                    LogMessage($"堆栈：{ex.StackTrace}");
+                    try
+                    {
+                        NotificationManager.ShowDeviceNotification(
+                            flow == AudioFlow.Playback ? "输出" : "输入", "切换失败");
+                    }
+                    catch { }
+                }
+            });
+        }
+
+        /// <summary>包装回调，捕获所有异常防止热键触发时崩溃应用。</summary>
+        private static Action WrapCallback(Action original)
+        {
+            return () =>
+            {
+                try
+                {
+                    original();
+                }
+                catch (Exception ex)
+                {
+                    AppLog.Write($"热键异常：{ex.GetType().Name}: {ex.Message}\n{ex.StackTrace}");
+                }
+            };
+        }
+
+        /// <summary>
+        /// 切换蓝牙音频传输状态（暂停/恢复）。
+        /// 按下后：暂停音频传输（手机声音不从电脑输出）
+        /// 再按下：恢复音频传输（手机声音从电脑输出）
+        /// 实际动作 = 静音/取消静音蓝牙音频接收对应的 WASAPI 会话。
+        /// </summary>
+        private void ToggleBluetoothAudioPlayback()
+        {
+            try
+            {
+                var result = BluetoothAudioService.ToggleAudioPlayback();
+
+                string title = result.Success
+                    ? (result.Paused ? "蓝牙音频已暂停" : "蓝牙音频已恢复")
+                    : "蓝牙音频未切换";
+
+                LogMessage($"蓝牙音频切换：{title} — {result.Message}");
+
+                // 显示右下角提示（1 秒）：复用统一的通知组件，
+                // 旧实现新建 WPF 窗口且不设位置，会出现在屏幕中间并截断长文案。
+                NotificationManager.ShowInfo(title, result.Message);
+            }
+            catch (Exception ex)
+            {
+                LogMessage($"蓝牙音频切换异常：{ex.GetType().Name}: {ex.Message}");
+            }
+        }
+
+        // ---------- Dronesee 热键 ----------
+
+        /// <summary>切换 Dronesee 录制状态（热键触发：开一次 / 关一次，不是功能开关）。</summary>
+        private void ToggleDroneseeRecording()
+        {
+            try
+            {
+                var settings = SettingsStore.Load().Dronesee;
+
+                // 功能总开关（设置里的滑块）关闭时，热键不生效，并明确告知用户
+                if (!settings.RecordingEnabled)
+                {
+                    NotificationManager.ShowInfo("Dronesee",
+                        "录制未开启：请先在 Dronesee 设置里打开「录制」滑块");
+                    return;
+                }
+
+                var engine = DroneseeModule.GetOrCreateEngine();
+                if (engine == null)
+                {
+                    NotificationManager.ShowInfo("Dronesee", "录制引擎未就绪");
+                    return;
+                }
+
+                bool wasRecording = engine.IsRecording;
+
+                // 一次录制动作：第一次按下开始录制，第二次按下结束录制
+                engine.ToggleRecording();
+
+                if (wasRecording)
+                {
+                    NotificationManager.ShowInfo("Dronesee", "录制已停止");
+                }
+                else if (!engine.IsRecording)
+                {
+                    NotificationManager.ShowInfo("Dronesee",
+                        "录制未能启动：请检查 FFmpeg 是否可用、保存路径是否可写（详见日志）");
+                }
+            }
+            catch (Exception ex)
+            {
+                LogMessage($"Dronesee 录制热键异常：{ex.GetType().Name}: {ex.Message}");
+                NotificationManager.ShowInfo("Dronesee", "录制操作失败");
+            }
+        }
+
+        /// <summary>
+        /// 即时重放热键（热键触发）：保存“一次”回放录像。
+        /// 不是打开/关闭即时重放功能——功能由设置里的滑块控制，
+        /// 打开后后台持续缓存，每次按热键就存一份片段，可以反复按。
+        /// </summary>
+        private void SaveDroneseeReplayClip()
+        {
+            try
+            {
+                var settings = SettingsStore.Load().Dronesee;
+
+                if (!settings.InstantReplayEnabled)
+                {
+                    NotificationManager.ShowInfo("Dronesee",
+                        "即时重放未开启：请先在 Dronesee 设置里打开「即时重放」滑块");
+                    return;
+                }
+
+                var engine = DroneseeModule.GetOrCreateEngine();
+                if (engine == null)
+                {
+                    NotificationManager.ShowInfo("Dronesee", "重放引擎未就绪");
+                    return;
+                }
+
+                if (!engine.SaveReplayClip())
+                {
+                    NotificationManager.ShowInfo("Dronesee",
+                        "本次未能保存回放（缓冲未就绪或合成失败，详见日志）");
+                }
+            }
+            catch (Exception ex)
+            {
+                LogMessage($"Dronesee 重放热键异常：{ex.GetType().Name}: {ex.Message}");
+                NotificationManager.ShowInfo("Dronesee", "重放操作失败");
+            }
+        }
+
+        /// <summary>记录日志到文件（统一走 AppLog：串行写入、带日期、UTF-8 BOM）。</summary>
+        private void LogMessage(string message) => AppLog.Write(message);
+
+        /// <summary>面板关闭后刷新卡片状态（默认设备可能已改变）。</summary>
+        public async void NotifyPanelClosed()
+        {
+            await RefreshAllAsync();
+        }
+
+        // ---------- 关闭行为（完全退出 / 最小化到托盘） ----------
+
+        /// <summary>创建托盘图标。失败只记日志：没有托盘图标时不允许“最小化到托盘”。</summary>
+        private void InitializeTrayIcon()
+        {
+            try
+            {
+                _tray = new TrayIconManager(ShowMainWindow, OpenSettingsWindow, RequestExit);
+                _tray.EnsureCreated();
+                LogMessage(_tray.IsReady ? "托盘图标已就绪" : "托盘图标未就绪，关闭时只能选择完全退出");
+            }
+            catch (Exception ex)
+            {
+                LogMessage($"托盘图标初始化异常：{ex.GetType().Name}: {ex.Message}");
+                _tray = null;
+            }
+        }
+
+        /// <summary>
+        /// 拦截窗口关闭：按设置决定“完全退出”还是“最小化到托盘”，
+        /// 设置为“每次询问”时先弹选择对话框。
+        /// </summary>
+        protected override void OnClosing(CancelEventArgs e)
+        {
+            if (!_allowClose)
+            {
+                e.Cancel = true;   // 先拦住这次关闭，等用户/设置给出结果
+                // 关键：WPF 在 OnClosing 期间不允许创建新对话框或对自身调用 Show()，
+                // 所以必须延迟到下一个 UI 循环再处理，避免 InvalidOperationException。
+                Dispatcher.BeginInvoke(new Action(HandleCloseRequest), DispatcherPriority.Background);
+            }
+
+            base.OnClosing(e);
+        }
+
+        private void HandleCloseRequest()
+        {
+            var action = CloseBehavior.Normalize(_settings.CloseAction);
+
+            if (action == CloseBehavior.Ask)
+            {
+                try
+                {
+                    var dialog = new CloseConfirmWindow { Owner = this };
+                    bool? confirmed = dialog.ShowDialog();
+
+                    // 用户取消（或直接关掉对话框）：什么都不做，程序继续运行
+                    if (confirmed != true || dialog.SelectedAction == null)
+                    {
+                        LogMessage("关闭已取消");
+                        return;
+                    }
+
+                    action = dialog.SelectedAction;
+
+                    if (dialog.Remember)
+                    {
+                        _settings.CloseAction = action;
+                        SettingsStore.Save(_settings);
+                        LogMessage($"已记住关闭方式：{CloseBehavior.ToDisplayName(action)}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // 无法弹对话框时，按默认行为退出
+                    LogMessage($"创建对话框异常，直接退出：{ex.GetType().Name}: {ex.Message}");
+                    RequestExit();
+                    return;
+                }
+            }
+
+            if (action == CloseBehavior.Tray)
+                MinimizeToTray();
+            else
+                RequestExit();
+        }
+
+        /// <summary>隐藏主窗口，程序在后台继续运行（热键仍然生效）。</summary>
+        private void MinimizeToTray()
+        {
+            if (_tray?.IsReady != true)
+            {
+                // 托盘图标不可用时隐藏窗口会把用户“关丢”程序，所以直接退出
+                LogMessage("托盘图标不可用，改为完全退出");
+                RequestExit();
+                return;
+            }
+
+            Hide();
+            LogMessage("已最小化到托盘，程序在后台继续运行");
+
+            if (!_trayTipShown)
+            {
+                _trayTipShown = true;
+                NotificationManager.ShowInfo("GameHub 仍在后台运行", "双击托盘图标可重新打开主界面");
+            }
+        }
+
+        /// <summary>真正退出程序（无论当前是从标题栏、托盘菜单还是设置里触发）。</summary>
+        public void RequestExit()
+        {
+            if (_allowClose)
+                return;
+
+            _allowClose = true;   // 之后 OnClosing 不再拦截
+            LogMessage("正在退出 GameHub");
+
+            // 已经隐藏（最小化到托盘）时也能关：Close() 对隐藏窗口同样会走 Closed → 清理流程
+            Close();
+        }
+
+        /// <summary>把主窗口从托盘里叫回来（也供第二个实例的唤醒信号调用）。</summary>
+        public void ShowMainWindow()
+        {
+            try
+            {
+                // 窗口不可见且处于最小化状态时，才尝试恢复
+                // 如果窗口已关闭或正在关闭，Show() 会抛异常，由 catch 处理
+                if (!IsVisible)
+                {
+                    Show();
+                    if (WindowState == WindowState.Minimized)
+                        WindowState = WindowState.Normal;
+
+                    Activate();
+
+                    // 仅 Activate() 在部分情况下不会把窗口提到最前，这里做个 Topmost 闪烁
+                    Topmost = true;
+                    Topmost = false;
+                    Focus();
+                }
+            }
+            catch (Exception ex)
+            {
+                LogMessage($"恢复主窗口失败：{ex.GetType().Name}: {ex.Message}");
+            }
+        }
+
+        /// <summary>打开「软件设置」。从托盘菜单进入时主窗口可能是隐藏的，先把窗口恢复出来。</summary>
+        private void OpenSettingsWindow()
+        {
+            if (!IsVisible)
+                ShowMainWindow();
+
+            var window = new HubSettingsWindow { Owner = this };
+            window.ShowDialog();
+        }
+
+        private void Settings_Click(object sender, RoutedEventArgs e) => OpenSettingsWindow();
+
+        /// <summary>重新读取 settings.json（设置窗口保存后调用，避免内存里的旧值覆盖新值）。</summary>
+        public void ReloadSettings()
+        {
+            _settings = SettingsStore.Load();
+            LogMessage($"设置已重新加载：关闭方式={CloseBehavior.ToDisplayName(_settings.CloseAction)}");
+        }
+
+        private void OnClosed(object? sender, EventArgs e)
+        {
+            // 退出前先把桌面还原：绝不能带着“隐藏的任务栏”退出，
+            // 否则用户下次开机就看不到任务栏了。
+            try
+            {
+                Modules.GlassBoard.DesktopVisibility.RestoreOriginal();
+                Modules.GlassBoard.TaskbarAutoHide.Restore();
+            }
+            catch (Exception ex)
+            {
+                AppLog.Write($"GlassBoard：退出时还原桌面失败：{ex.GetType().Name}: {ex.Message}");
+            }
+
+            // 先注销热键，防止热键触发时访问已销毁的 UI 线程
+            _hotkeyManager.Dispose();
+            
+            // 保存设置
+            SettingsStore.Save(_settings);
+            
+            // 断开蓝牙连接
+            BluetoothAudioService.DisconnectAll();
+
+            // 退出时取消蓝牙音频静音（避免下次启动/重连后没有声音）
+            BluetoothAudioService.RestoreAudioOnExit();
+            
+            // 清理 Dronesee 录制引擎（统一由模块持有）
+            DroneseeModule.DisposeEngine();
+
+            // 清理通知管理器
+            NotificationManager.Cleanup();
+
+            // 移除托盘图标：不 Dispose 会在托盘区留下一个点不动的“幽灵图标”
+            _tray?.Dispose();
+            _tray = null;
+            
+            // 确保进程完全退出
+            Application.Current.Shutdown();
+        }
+    }
+}

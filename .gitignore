@@ -1,0 +1,46 @@
+# ===== 构建产物 =====
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+publish/
+*.pubxml.user
+buildcheck*/
+
+# ===== 本地发布包（正式包走 GitHub Releases 附件）=====
+GameHub_LATEST*/
+GameHub_v*-win-x64/
+
+# ===== Visual Studio / Rider =====
+.vs/
+.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.rsuser
+*_wpftmp.csproj
+
+# ===== 日志与崩溃转储 =====
+*.log
+*.dmp
+logs/
+
+# ===== 录制产物（体积巨大，不入库）=====
+GameHub Recordings/
+*.mp4
+*.mkv
+
+# ===== ffmpeg 超大二进制（约 105MB，超 GitHub 单文件 100MB 限制，随 Release 附件分发）=====
+ffmpeg.exe
+
+# ===== 临时文件 =====
+.opensquilla/
+~$*
+Thumbs.db
+.DS_Store
+*.zip
+_*.ps1
+
+# ===== 已移除模块的历史遗留模型（PP-OCRv6，约 30MB）=====
+Modules/EvoTracker/models/

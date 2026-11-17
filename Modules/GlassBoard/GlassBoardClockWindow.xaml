@@ -1,0 +1,36 @@
+<Window x:Class="GameHub.Modules.GlassBoard.GlassBoardClockWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="GlassBoard 时钟"
+        Width="240"
+        SizeToContent="Height"
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent"
+        ShowInTaskbar="False" ResizeMode="NoResize" Topmost="False"
+        WindowStartupLocation="Manual">
+    <!-- 外观与其余悬浮窗统一：圆角 18 / 底色 #B3181A20（即 70% 的 rgb(24,26,32)）
+         / 描边 #24D5E3FF / 投影 Blur 20 —— 与 GlassBoardTheme.WidgetCorner / WidgetFill / Line / WidgetShadow 同一套值。 -->
+    <Border x:Name="Shell" CornerRadius="18" Padding="22,16" Background="#B3181A20"
+            BorderBrush="#24D5E3FF" BorderThickness="1"
+            MouseLeftButtonDown="Shell_MouseLeftButtonDown">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="20" ShadowDepth="3" Opacity="0.35" Color="#000000"/>
+        </Border.Effect>
+
+        <Border.ContextMenu>
+            <ContextMenu>
+                <MenuItem x:Name="MenuFrameless" Header="无框显示" Click="MenuFrameless_Click"/>
+                <MenuItem x:Name="MenuDate" Header="显示日期" Click="MenuDate_Click"/>
+                <MenuItem x:Name="MenuHour24" Header="24 小时制" Click="MenuHour24_Click"/>
+                <Separator/>
+                <MenuItem Header="隐藏时钟" Click="MenuHide_Click"/>
+            </ContextMenu>
+        </Border.ContextMenu>
+
+        <StackPanel HorizontalAlignment="Center">
+            <TextBlock x:Name="TimeText" Text="00:00" FontSize="48" FontWeight="SemiBold"
+                       Foreground="White" HorizontalAlignment="Center"/>
+            <TextBlock x:Name="DateText" Text="" FontSize="12" Foreground="#CFD6E4"
+                       HorizontalAlignment="Center" Margin="0,6,0,0"/>
+        </StackPanel>
+    </Border>
+</Window>
