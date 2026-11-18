@@ -58,6 +58,8 @@ namespace GameHub.Utils
                 SetBrush(res, "DimBrush", C(0x4C, 0x59, 0x6C));
                 SetBrush(res, "FaintBrush", C(0x7C, 0x8B, 0x9F));
                 SetBrush(res, "TrackOffBrush", C(0xC8, 0xCE, 0xD7));
+                SetBrush(res, "WarningBrush", C(0xB4, 0x5E, 0x00));
+                SetBrush(res, "DangerBrush", C(0xC0, 0x2B, 0x3B));
             }
             else
             {
@@ -72,6 +74,8 @@ namespace GameHub.Utils
                 SetBrush(res, "DimBrush", C(0xA3, 0xAA, 0xB5));
                 SetBrush(res, "FaintBrush", C(0x5B, 0x64, 0x71));
                 SetBrush(res, "TrackOffBrush", C(0x2B, 0x30, 0x39));
+                SetBrush(res, "WarningBrush", C(0xFF, 0xBE, 0x4B));
+                SetBrush(res, "DangerBrush", C(0xFF, 0x48, 0x58));
             }
 
             // 2) 主题强调色：画刷、选中底色、强调文字色、渐变、窗口底色渐变
